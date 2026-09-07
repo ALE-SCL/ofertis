@@ -222,13 +222,28 @@ async def seed_data():
                 if not super_id:
                     continue
 
+                import urllib.parse
+                search_term = urllib.parse.quote_plus(prod_data["name"])
+                
+                # URLs reales funcionales por supermercado chileno
+                if itm["super"] == "lider":
+                    real_store_url = f"https://www.lider.cl/supermercado/search?query={search_term}"
+                elif itm["super"] == "jumbo":
+                    real_store_url = f"https://www.jumbo.cl/busqueda?ft={search_term}"
+                elif itm["super"] == "santaisabel":
+                    real_store_url = f"https://www.santaisabel.cl/busca?ft={search_term}"
+                elif itm["super"] == "unimarc":
+                    real_store_url = f"https://www.unimarc.cl/search?q={search_term}"
+                else:
+                    real_store_url = f"https://www.{itm['super']}.cl"
+
                 sku_item = SupermarketItem(
                     canonical_id=canonical.id,
                     supermarket_id=super_id,
                     sku=itm["sku"],
                     store_title=itm["title"],
                     brand_extracted=prod_data["brand"],
-                    product_url=f"https://www.{itm['super']}.cl/producto/{itm['sku']}",
+                    product_url=real_store_url,
                     image_url=itm["img"],
                     package_quantity=itm["qty"],
                     package_unit=itm["unit"],

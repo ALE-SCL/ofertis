@@ -55,7 +55,15 @@ class CencosudScraperAdapter(BaseScraperAdapter):
                     product_id = str(p.get("productId", ""))
                     product_name = p.get("productName", "")
                     brand = p.get("brand", "")
-                    link = p.get("link", f"{self._base_domain}/p/{product_id}")
+                    
+                    import urllib.parse
+                    encoded_name = urllib.parse.quote_plus(product_name)
+                    search_url = (
+                        f"https://www.santaisabel.cl/busca?ft={encoded_name}"
+                        if self._slug == "santaisabel"
+                        else f"https://www.jumbo.cl/busqueda?ft={encoded_name}"
+                    )
+                    link = p.get("link") or search_url
 
                     # Extraer precio desde los items / sellers de VTEX
                     items = p.get("items", [])

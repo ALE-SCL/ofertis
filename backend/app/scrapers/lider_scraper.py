@@ -65,6 +65,10 @@ class LiderScraperAdapter(BaseScraperAdapter):
                     normal_p = base_price if base_price > 0 else lead_price
                     offer_p = lead_price if (base_price > 0 and lead_price < base_price) else None
 
+                    import urllib.parse
+                    encoded_query = urllib.parse.quote_plus(display_name)
+                    search_url = f"{self._base_domain}/supermercado/search?query={encoded_query}"
+
                     if normal_p > 0:
                         products.append(
                             RawScrapedProduct(
@@ -74,7 +78,7 @@ class LiderScraperAdapter(BaseScraperAdapter):
                                 brand_raw=brand,
                                 normal_price=normal_p,
                                 offer_price=offer_p,
-                                product_url=f"{self._base_domain}/supermercado/producto/{sku}",
+                                product_url=search_url,
                                 image_url=img_url,
                                 category_hint=category
                             )

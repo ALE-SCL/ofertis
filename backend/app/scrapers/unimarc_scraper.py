@@ -53,7 +53,10 @@ class UnimarcScraperAdapter(BaseScraperAdapter):
                     product_id = str(p.get("productId", ""))
                     product_name = p.get("productName", "")
                     brand = p.get("brand", "")
-                    link = p.get("link", f"{self._base_domain}/product/{product_id}")
+                    
+                    import urllib.parse
+                    encoded_name = urllib.parse.quote_plus(product_name)
+                    link = p.get("link") or f"https://www.unimarc.cl/search?q={encoded_name}"
 
                     items = p.get("items", [])
                     if not items:
