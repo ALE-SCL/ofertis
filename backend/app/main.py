@@ -8,6 +8,7 @@ from app.api.v1.health import router as health_router
 from app.api.v1.products import router as products_router
 from app.api.v1.alerts import router as alerts_router
 from app.api.v1.mining import router as mining_router
+from app.api.v1.radar import router as radar_router
 
 # Configuración de Logging estructurado
 logging.basicConfig(
@@ -51,6 +52,7 @@ app.include_router(health_router, prefix="/api/v1")
 app.include_router(products_router, prefix="/api/v1")
 app.include_router(alerts_router, prefix="/api/v1")
 app.include_router(mining_router, prefix="/api/v1")
+app.include_router(radar_router, prefix="/api/v1")
 
 
 @app.get("/")
