@@ -1,0 +1,5 @@
+# Dependencias opcionales para RadarAlternativo
+# Funciona al 100% de manera nativa con la librería estándar de Python
+pydantic>=2.5.0
+httpx>=0.25.0
+pytest>=8.0.0
