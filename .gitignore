@@ -1,0 +1,82 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables & secrets (CRITICAL)
+.env.local
+.env.*.local
+.env.prod
+*.key
+*.pem
+*.cert
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# Vite / Frontend build artifacts
+frontend/dist/
+frontend/dist-ssr/
+*.local
+
+# Database & Persistent Volumes
+postgres_data/
+redis_data/
+*.sqlite3
+*.db
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# IDE & Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.cursor/
+
+# Testing & Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+logs/
+*.log

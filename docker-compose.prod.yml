@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # PostgreSQL 16 con extensión pgvector (Endurecido para Prod)
+  # -------------------------------------------------------------
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ofertis_db_prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ofertis_internal_network
+
+  # -------------------------------------------------------------
+  # Redis para colas y caché persistente
+  # -------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: ofertis_redis_prod
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data_prod:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ofertis_internal_network
+
+  # -------------------------------------------------------------
+  # Backend FastAPI: Imagen Multi-Stage optimizada y usuario no-root
+  # -------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ofertis_backend_prod
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+    env_file:
+      - .env.prod
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ofertis_internal_network
+      - ofertis_public_network
+
+  # -------------------------------------------------------------
+  # Frontend React servido mediante Nginx Alpine (SSL & Gzip)
+  # -------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ofertis_frontend_prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    networks:
+      - ofertis_public_network
+
+networks:
+  ofertis_internal_network:
+    internal: true
+  ofertis_public_network:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:
+  redis_data_prod:

@@ -1,0 +1,91 @@
+name: CI Pipeline - Ofertis Chile
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend-lint-test:
+    name: Backend Quality & Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ofertis_user
+          POSTGRES_PASSWORD: ofertis_test_password
+          POSTGRES_DB: ofertis_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install Dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest pytest-asyncio httpx
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Ruff (Linter & Code Formatter)
+        working-directory: ./backend
+        run: ruff check app/ tests/
+
+      - name: Run Pytest Suite
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://ofertis_user:ofertis_test_password@localhost:5432/ofertis_test_db
+          ENVIRONMENT: testing
+          WHATSAPP_PROVIDER: mock
+        run: pytest -v
+
+  frontend-lint-build:
+    name: Frontend Quality & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Type Check & Build
+        working-directory: ./frontend
+        run: |
+          npm run build
+
+  docker-build-verification:
+    name: Docker Multi-Stage Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Backend Docker Image
+        run: docker build -t ofertis-backend:ci -f backend/Dockerfile backend/
+
+      - name: Build Frontend Docker Image
+        run: docker build -t ofertis-frontend:ci -f frontend/Dockerfile frontend/

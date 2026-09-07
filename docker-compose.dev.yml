@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # PostgreSQL 16 con extensión pgvector
+  # -------------------------------------------------------------
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ofertis_db_dev
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ofertis_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ofertis_dev_secret_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-ofertis_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ofertis_user} -d ${POSTGRES_DB:-ofertis_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ofertis_network
+
+  # -------------------------------------------------------------
+  # Redis para colas de agentes y caché de precios
+  # -------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: ofertis_redis_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_dev:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ofertis_network
+
+  # -------------------------------------------------------------
+  # Backend: FastAPI + SentenceTransformers + Scraping Engine
+  # -------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: ofertis_backend_dev
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend_cache:/root/.cache
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ofertis_network
+
+  # -------------------------------------------------------------
+  # Frontend: React + Vite + Tailwind CSS (HMR activo)
+  # -------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: ofertis_frontend_dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - ofertis_network
+
+networks:
+  ofertis_network:
+    driver: bridge
+
+volumes:
+  postgres_data_dev:
+  redis_data_dev:
+  backend_cache:
