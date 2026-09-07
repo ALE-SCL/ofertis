@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Sparkles, Filter, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Search, Sparkles, Filter, AlertCircle, ShoppingBag, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { Navbar } from './components/Navbar';
 import { MiningStatsBanner } from './components/MiningStatsBanner';
@@ -54,14 +54,14 @@ export function App() {
   // Ejecutar búsqueda semántica con pgvector
   const handleSearch = async (searchTerm: string, catSlug: string) => {
     if (!searchTerm.trim() && catSlug === 'todos') {
-      searchTerm = 'carne'; // búsqueda por defecto
+      searchTerm = 'leche'; // término inicial
     }
 
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/products/search`, {
         params: {
-          q: searchTerm.trim() || 'canasta basica',
+          q: searchTerm.trim() || 'leche',
           category: catSlug !== 'todos' ? catSlug : undefined,
           limit: 20
         }
@@ -69,6 +69,31 @@ export function App() {
       setProducts(res.data);
     } catch (err) {
       console.error('Error buscando productos:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Minería en Vivo On-Demand (consulta las 4 tiendas en tiempo real)
+  const handleLiveRefresh = async () => {
+    const term = query.trim() || 'leche';
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/products/refresh-live`, null, {
+        params: {
+          q: term,
+          category: selectedCategory !== 'todos' ? selectedCategory : undefined,
+          limit: 4
+        }
+      });
+      setProducts(res.data);
+      // Actualizar estadísticas del banner
+      const statRes = await axios.get(`${API_BASE_URL}/mining/stats`);
+      setStats(statRes.data);
+    } catch (err) {
+      console.error('Error en minería en vivo:', err);
+      // Fallback a búsqueda normal si falla
+      handleSearch(query, selectedCategory);
     } finally {
       setLoading(false);
     }
@@ -131,7 +156,18 @@ export function App() {
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center space-x-2"
               >
-                <span>Buscar Ofertas</span>
+                <span>Buscar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLiveRefresh}
+                disabled={loading}
+                title="Consulta en tiempo real las APIs de Jumbo, Santa Isabel, Unimarc y Lider"
+                className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold px-5 py-3.5 rounded-2xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-2 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>Actualizar Precios en Vivo</span>
               </button>
             </form>
 

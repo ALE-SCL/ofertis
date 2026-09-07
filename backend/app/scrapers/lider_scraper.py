@@ -33,57 +33,89 @@ class LiderScraperAdapter(BaseScraperAdapter):
         limit: int = 20
     ) -> List[RawScrapedProduct]:
         """
-        Ejecuta la búsqueda contra el endpoint de catálogo de Lider.
+        Ejecuta la búsqueda contra el portal de Lider Supermercado y extrae
+        los productos reales desde la estructura Next.js (__NEXT_DATA__).
         """
-        url = "https://buyshop-service.lider.cl/orchestrator/v2/products/search"
-        params = {"query": query, "page": 1, "hitsPerPage": limit}
+        import urllib.parse
+        import json
+        from bs4 import BeautifulSoup
+        import httpx
 
+        encoded_q = urllib.parse.quote_plus(query)
+        url = f"{self._base_domain}/supermercado/search?query={encoded_q}"
         headers = {
-            "Referer": f"{self._base_domain}/supermercado",
-            "Origin": self._base_domain,
-            "Accept": "application/json",
-            "tenant": "supermercado",
-            "channel": "desktop"
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "es-CL,es;q=0.9",
         }
 
-        response_data = await self.skill.fetch_json_safe(url, params=params, headers=headers)
         products: List[RawScrapedProduct] = []
 
-        if isinstance(response_data, dict):
-            raw_items = response_data.get("products", [])
-            for p in raw_items:
-                try:
-                    sku = str(p.get("sku", p.get("id", "")))
-                    display_name = p.get("displayName", "")
-                    brand = p.get("brand", "")
-                    img_url = p.get("images", {}).get("smallImage") or p.get("images", {}).get("largeImage")
+        try:
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code != 200:
+                    logger.warning(f"Lider retornó status {resp.status_code}")
+                    return products
 
-                    price_info = p.get("price", {})
-                    base_price = Decimal(str(price_info.get("BasePriceReference", 0)))
-                    lead_price = Decimal(str(price_info.get("leadPrice", 0)))
+                soup = BeautifulSoup(resp.text, "html.parser")
+                script = soup.find("script", id="__NEXT_DATA__")
+                if not script or not script.string:
+                    return products
 
-                    normal_p = base_price if base_price > 0 else lead_price
-                    offer_p = lead_price if (base_price > 0 and lead_price < base_price) else None
+                data = json.loads(script.string)
+                layout = data.get("props", {}).get("pageProps", {}).get("initialTempoData", {}).get("data", {}).get("contentLayout", {})
+                modules = layout.get("modules", [])
 
-                    import urllib.parse
-                    encoded_query = urllib.parse.quote_plus(display_name)
-                    search_url = f"{self._base_domain}/supermercado/search?query={encoded_query}"
+                for m in modules:
+                    if len(products) >= limit:
+                        break
+                    raw_prods = m.get("configs", {}).get("products", [])
+                    for p in raw_prods:
+                        if len(products) >= limit:
+                            break
+                        try:
+                            name = p.get("name")
+                            if not name:
+                                continue
+                            brand = p.get("brand", "")
+                            sku = str(p.get("id") or p.get("sku", ""))
+                            img_info = p.get("imageInfo", {})
+                            img_url = img_info.get("thumbnailUrl")
 
-                    if normal_p > 0:
-                        products.append(
-                            RawScrapedProduct(
-                                supermarket_slug=self._slug,
-                                sku=f"LID-{sku}",
-                                store_title=display_name,
-                                brand_raw=brand,
-                                normal_price=normal_p,
-                                offer_price=offer_p,
-                                product_url=search_url,
-                                image_url=img_url,
-                                category_hint=category
+                            price_info = p.get("priceInfo", {})
+                            current_price_obj = price_info.get("currentPrice", {})
+                            price_val = current_price_obj.get("price")
+                            if not price_val:
+                                continue
+                            normal_p = Decimal(str(price_val))
+
+                            was_price_obj = price_info.get("wasPrice", {})
+                            was_val = was_price_obj.get("price") if was_price_obj else None
+                            offer_p = None
+                            if was_val and Decimal(str(was_val)) > normal_p:
+                                normal_p = Decimal(str(was_val))
+                                offer_p = Decimal(str(price_val))
+
+                            search_url = f"{self._base_domain}/supermercado/search?query={encoded_q}"
+
+                            products.append(
+                                RawScrapedProduct(
+                                    supermarket_slug=self._slug,
+                                    sku=f"LID-{sku[:12]}",
+                                    store_title=name,
+                                    brand_raw=brand,
+                                    normal_price=normal_p,
+                                    offer_price=offer_p,
+                                    product_url=search_url,
+                                    image_url=img_url,
+                                    category_hint=category
+                                )
                             )
-                        )
-                except Exception as ex:
-                    logger.debug(f"Error parseando item Lider: {ex}")
+                        except Exception as p_err:
+                            logger.debug(f"Error procesando producto de Lider: {p_err}")
+
+        except Exception as e:
+            logger.error(f"Error en scraper de Lider: {e}")
 
         return products

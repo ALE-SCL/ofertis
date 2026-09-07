@@ -2,7 +2,7 @@ import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, desc
 
 from app.agents.base_agent import BaseAgent
 from app.agents.normalizer_agent import NormalizedProduct
@@ -51,7 +51,7 @@ class EntityResolutionAgent(BaseAgent):
                 (1 - CanonicalProduct.embedding.cosine_distance(title_vector)).label("similarity")
             )
             .where(CanonicalProduct.category == item.canonical_category)
-            .order_by("similarity DESC")
+            .order_by(desc("similarity"))
             .limit(1)
         )
         res_vector = await self.db.execute(stmt_vector)

@@ -64,7 +64,7 @@ class ScrapingSkill(BaseSkill):
                 async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
                     response = await client.get(url, params=params, headers=req_headers)
 
-                    if response.status_code == 200:
+                    if response.status_code in (200, 206):
                         return response.json()
                     elif response.status_code in (429, 503):
                         wait_time = attempt * 3.0
