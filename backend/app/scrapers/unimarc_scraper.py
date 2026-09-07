@@ -53,10 +53,16 @@ class UnimarcScraperAdapter(BaseScraperAdapter):
                     product_id = str(p.get("productId", ""))
                     product_name = p.get("productName", "")
                     brand = p.get("brand", "")
+                    link_text = p.get("linkText", "")
                     
                     import urllib.parse
                     encoded_name = urllib.parse.quote_plus(product_name)
-                    link = p.get("link") or f"https://www.unimarc.cl/search?q={encoded_name}"
+                    
+                    # Generar URL pública de consumidor
+                    if link_text:
+                        link = f"https://www.unimarc.cl/product/{link_text}"
+                    else:
+                        link = f"https://www.unimarc.cl/search?q={encoded_name}"
 
                     items = p.get("items", [])
                     if not items:
