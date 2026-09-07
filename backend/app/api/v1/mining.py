@@ -49,3 +49,18 @@ async def get_mining_stats(db: AsyncSession = Depends(get_db)):
         "active_supermarkets": ["Lider", "Jumbo", "Santa Isabel", "Unimarc"],
         "commune_target": "Santiago Centro / Providencia (Región Metropolitana)"
     }
+
+
+@router.post("/run-cycle")
+async def trigger_multi_agent_cycle(
+    limit: int = 3,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Ejecuta bajo demanda el ciclo completo multi-agente:
+    Harvester -> Normalizer -> Entity Resolution (pgvector) -> Alert Monitor (WhatsApp).
+    """
+    from app.agents.orchestrator import MultiAgentOrchestrator
+    orchestrator = MultiAgentOrchestrator(db)
+    result = await orchestrator.execute_full_cycle(limit_per_query=limit)
+    return result

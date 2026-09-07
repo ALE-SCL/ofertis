@@ -61,12 +61,13 @@ class UnitNormalizerSkill(BaseSkill):
             if match:
                 raw_val = match.group(1).replace(",", ".")
                 val = Decimal(raw_val)
-                unit_str = match.group(0).lower()
-                if "g" in unit_str and not unit_str.startswith("k"):
+                # Extraer únicamente el sufijo textual de la unidad
+                unit_suffix = re.sub(r"[\d\s.,]", "", match.group(0).lower())
+                if unit_suffix in ["g", "gr", "grs", "gramo", "gramos"]:
                     # Gramos a Kilogramos
                     kgs = val / Decimal(1000)
                     return kgs, "kg"
-                else:
+                elif unit_suffix in ["k", "kg", "kgs", "kilo", "kilos"]:
                     return val, "kg"
 
         # 3. Fallbacks contextuales según la categoría del producto en Chile

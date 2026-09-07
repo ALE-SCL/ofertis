@@ -1,0 +1,56 @@
+import unittest
+import asyncio
+from decimal import Decimal
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from app.scrapers.base_scraper import RawScrapedProduct
+from app.agents.normalizer_agent import NormalizerAgent
+
+
+class TestOfertisAgents(unittest.TestCase):
+    def setUp(self):
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+
+    def tearDown(self):
+        self.loop.close()
+
+    def test_normalizer_agent_processing(self):
+        normalizer = NormalizerAgent()
+
+        raw_sample = RawScrapedProduct(
+            supermarket_slug="lider",
+            sku="LID-TEST-01",
+            store_title="Lomo Liso Vacuno al Vacío Categoría V 1.5 kg",
+            brand_raw=None,
+            normal_price=Decimal("15000"),
+            offer_price=Decimal("12000"),
+            product_url="https://www.lider.cl/test",
+            image_url="https://img.jpg",
+            category_hint="carne_vacuno"
+        )
+
+        res = self.loop.run_until_complete(
+            normalizer.step(raw_items=[raw_sample])
+        )
+
+        items = res["normalized_items"]
+        self.assertEqual(len(items), 1)
+        norm = items[0]
+
+        # Verificar extracción de taxonomía chilena
+        self.assertEqual(norm.canonical_category, "carne_vacuno")
+        self.assertEqual(norm.canonical_subcategory, "lomo_liso")
+        self.assertEqual(norm.package_quantity, Decimal("1.500"))
+        self.assertEqual(norm.standard_unit, "kg")
+
+        # Verificar cálculo de precio normalizado: $12.000 / 1.5kg = $8.000 / kg
+        self.assertEqual(norm.unit_price_normalized, Decimal("8000"))
+        self.assertTrue(norm.is_offer)
+
+
+if __name__ == "__main__":
+    unittest.main()
