@@ -1,0 +1,6 @@
+# Dependencias opcionales para Sentinela
+# Nota: Sentinela está diseñado para operar al 100% con la librería estándar de Python
+# para máxima portabilidad, pero soporta estos paquetes para funcionalidades extendidas.
+pydantic>=2.5.0
+httpx>=0.25.0
+pytest>=8.0.0
