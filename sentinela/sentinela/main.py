@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import time
 import logging
 from datetime import datetime
 
@@ -8,7 +9,9 @@ from .config import REPORTS_DIR
 from .connectors.bcentral_connector import BancoCentralConnector
 from .connectors.rss_news_connector import RssNewsConnector
 from .connectors.climate_connector import ClimateEventConnector
+from .connectors.odepa_connector import OdepaConnector
 from .engine.impact_evaluator import SentinelaImpactEvaluator
+from .engine.event_simulator import EventSimulator
 from .generator.bulletin_builder import BulletinBuilder
 from .models.alert_models import MarketEvent, DataSource, DataSourceType
 
@@ -17,9 +20,6 @@ logger = logging.getLogger("sentinela")
 
 
 def get_sample_realistic_events() -> list:
-    """
-    Eventos de demostración basados en situaciones reales habituales de la cadena agroalimentaria chilena.
-    """
     today_str = datetime.now().strftime("%Y%m%d")
     return [
         MarketEvent(
@@ -71,7 +71,7 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
         logger.info("Modo de muestra / dry-run activado: usando eventos de impacto verificables para demostración.")
         all_events.extend(get_sample_realistic_events())
     else:
-        logger.info("Modo en vivo: consultando fuentes oficiales (Banco Central, Feeds RSS)...")
+        logger.info("Modo en vivo: consultando fuentes oficiales (Banco Central, ODEPA, Feeds RSS)...")
         # 1. Indicadores Banco Central
         bcentral = BancoCentralConnector()
         try:
@@ -80,7 +80,15 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
         except Exception as e:
             logger.warning(f"Fallo en conector Banco Central: {e}")
 
-        # 2. Noticias económicas y agropecuarias verificadas
+        # 2. Boletines Oficiales de ODEPA (Minagri)
+        odepa = OdepaConnector()
+        try:
+            odepa_events = odepa.evaluate_agricultural_events()
+            all_events.extend(odepa_events)
+        except Exception as e:
+            logger.warning(f"Fallo en conector ODEPA: {e}")
+
+        # 3. Noticias económicas y agropecuarias verificadas
         rss_news = RssNewsConnector()
         try:
             news_events = rss_news.extract_supply_chain_events()
@@ -88,11 +96,11 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
         except Exception as e:
             logger.warning(f"Fallo en conector RSS: {e}")
 
-    # 3. Evaluación causal y filtro de anti-especulación
+    # 4. Evaluación causal y filtro de anti-especulación
     evaluator = SentinelaImpactEvaluator()
     alerts = evaluator.evaluate_events(all_events)
 
-    # 4. Guardar boletines si corresponde
+    # 5. Guardar boletines si corresponde
     date_str = datetime.now().strftime("%Y%m%d_%H%M")
     if save_reports:
         md_path = os.path.join(REPORTS_DIR, f"boletin_sentinela_{date_str}.md")
@@ -103,7 +111,7 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
         logger.info(f"Boletín Markdown guardado en: {md_path}")
         logger.info(f"Boletín JSON guardado en: {json_path}")
 
-    # 5. Despachar a la consola de terminal
+    # 6. Despachar a la consola de terminal
     if print_console:
         summary_text = BulletinBuilder.render_console_summary(alerts)
         print("\n" + summary_text)
@@ -111,14 +119,41 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
     return alerts
 
 
+def run_daemon(interval_hours: int = 6):
+    logger.info(f"🌙 Modo Demonio Sentinela iniciado. Intervalo de ejecución: cada {interval_hours} horas.")
+    try:
+        while True:
+            run_sentinela(is_sample=False, print_console=True, save_reports=True)
+            sleep_seconds = interval_hours * 3600
+            logger.info(f"💤 Próximo ciclo en {interval_hours} horas ({sleep_seconds} segundos)...")
+            time.sleep(sleep_seconds)
+    except KeyboardInterrupt:
+        logger.info("Demonio Sentinela detenido por el usuario.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Sentinela: Agente de Alerta Temprana en Alimentos para Chile")
     parser.add_argument("--sample", "--dry-run", action="store_true", help="Ejecuta con eventos de muestra para pruebas y demo")
+    parser.add_argument("--simulate", type=str, help="Simula un escenario hipotético (ej: 'heladas en Maule' o 'alza de dolar a 980')")
+    parser.add_argument("--daemon", action="store_true", help="Ejecuta en modo demonio continuo cada 6 horas")
+    parser.add_argument("--interval", type=int, default=6, help="Intervalo en horas para el modo demonio (por defecto: 6)")
     parser.add_argument("--console", action="store_true", default=True, help="Muestra el resumen ejecutivo en consola")
     parser.add_argument("--no-console", dest="console", action="store_false", help="Desactiva la salida por consola")
     parser.add_argument("--no-save", dest="save", action="store_false", default=True, help="No guarda los archivos en reports/")
 
     args = parser.parse_args()
+
+    if args.simulate:
+        logger.info(f"🔬 Ejecutando simulación de escenario: '{args.simulate}'")
+        sim_alerts = EventSimulator.simulate_scenario(args.simulate)
+        summary = BulletinBuilder.render_console_summary(sim_alerts)
+        print("\n" + summary)
+        return
+
+    if args.daemon:
+        run_daemon(interval_hours=args.interval)
+        return
+
     run_sentinela(is_sample=args.sample, print_console=args.console, save_reports=args.save)
 
 
