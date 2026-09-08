@@ -1,13 +1,15 @@
 import logging
 import time
+import re
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, or_
+from sqlalchemy import select, func, desc, or_, case
 from app.models.alternative_store import AlternativeStore
 from app.models.alternative_item import AlternativeItem
 from app.services.vector_service import VectorService
+
 
 logger = logging.getLogger("ofertis.radar_service")
 
@@ -763,6 +765,58 @@ RAW_ALTERNATIVE_ITEMS = [
         "purchase_url": "https://www.mayorista10.cl/catalogo/fideos-carozzi-pack5",
         "is_wholesale": True,
         "advice": "Pack familiar de 5 unidades con precio mayorista unitario de $790 frente a los $990 del retail."
+    },
+    # --- MAYORISTAS QUESOS ---
+    {
+        "sku": "CC-003",
+        "product_name": "Queso Gauda Barra Colun (Pieza ~3 kg)",
+        "category": "lacteos_huevos",
+        "store_id": "comercial_castro",
+        "store_name": "Comercial Castro Mayorista",
+        "store_type": "CARNICERIA_MAYORISTA",
+        "unit": "barra ~3 kg ($6.330/kg)",
+        "price": 18990.0,
+        "unit_price": 6330.0,
+        "traditional_benchmark_unit_price": 10990.0,
+        "benchmark_label": "Queso Gauda Colun Retail ($10.990/kg)",
+        "purchase_url": "https://comercialcastro.cl/catalogo/queso-gauda-barra-colun",
+        "image_url": "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=600&q=80",
+        "is_wholesale": True,
+        "advice": "Ahorro de más de $4.600 por kilo comprando la barra entera al por mayor en Comercial Castro."
+    },
+    {
+        "sku": "ALV-004",
+        "product_name": "Queso Mantecoso Tradicional Pieza Sellada (Barra ~3 kg)",
+        "category": "lacteos_huevos",
+        "store_id": "alvi",
+        "store_name": "Alvi Supermercados Mayoristas (SMU)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "barra ~3 kg ($6.490/kg)",
+        "price": 19470.0,
+        "unit_price": 6490.0,
+        "traditional_benchmark_unit_price": 11490.0,
+        "benchmark_label": "Queso Mantecoso Retail ($11.490/kg)",
+        "purchase_url": "https://www.alvi.cl/catalogo/queso-mantecoso-barra",
+        "image_url": "https://images.unsplash.com/photo-1552767059-ce182ead6c1b?auto=format&fit=crop&w=600&q=80",
+        "is_wholesale": True,
+        "advice": "Precio mayorista por pieza sellada en Alvi a $6.490/kg frente a los $11.490/kg en supermercados tradicionales."
+    },
+    {
+        "sku": "CM-003",
+        "product_name": "Queso Gauda Laminado Cuisine & Co (Pack Familiar 1 kg)",
+        "category": "lacteos_huevos",
+        "store_id": "central_mayorista",
+        "store_name": "Central Mayorista (Walmart Chile)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "pack familiar 1 kg ($6.990/kg)",
+        "price": 6990.0,
+        "unit_price": 6990.0,
+        "traditional_benchmark_unit_price": 9990.0,
+        "benchmark_label": "Queso Gauda Laminado 1kg Retail ($9.990)",
+        "purchase_url": "https://www.centralmayorista.cl/catalogo/queso-gauda-1kg",
+        "image_url": "https://images.unsplash.com/photo-1589881133595-a3c085cb731d?auto=format&fit=crop&w=600&q=80",
+        "is_wholesale": True,
+        "advice": "Pack familiar de 1 kg de queso laminado en Central Mayorista con 30% de ahorro directo vs retail."
     }
 ]
 
@@ -827,18 +881,20 @@ class RadarService:
         def clean_txt(t: str) -> str:
             return t.lower().replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u').replace('ñ', 'n')
 
-        search_term = clean_txt(q.strip()) if q and q.strip() else None
+        search_tokens = [clean_txt(t) for t in re.split(r"[\s,\-\+]+", q.strip()) if len(t) >= 2] if q and q.strip() else []
 
         for item in RAW_ALTERNATIVE_ITEMS:
             if category and category != "todos" and item["category"] != category:
                 continue
 
-            if search_term:
+            if search_tokens:
                 p_name = clean_txt(item["product_name"])
                 s_name = clean_txt(item["store_name"])
                 cat = clean_txt(item["category"])
                 s_id = clean_txt(item.get("store_id", ""))
-                if search_term not in p_name and search_term not in s_name and search_term not in cat and search_term not in s_id:
+                adv = clean_txt(item.get("advice", ""))
+                target = f"{p_name} {s_name} {cat} {s_id} {adv}"
+                if not all(tok in target for tok in search_tokens):
                     continue
 
             alt_p = item["unit_price"]
@@ -930,26 +986,60 @@ class RadarService:
             query_vector = None
 
             if search_term:
-                clean_q = f"%{search_term.lower()}%"
-                # Filtro textual con ILIKE sobre producto, tienda, categoría o notas
-                stmt = stmt.where(
-                    or_(
-                        func.lower(AlternativeItem.product_name).like(clean_q),
-                        func.lower(AlternativeStore.name).like(clean_q),
-                        func.lower(AlternativeItem.category).like(clean_q),
-                        func.lower(AlternativeStore.slug).like(clean_q),
-                        func.lower(AlternativeItem.recommendation_note).like(clean_q),
+                clean_q = search_term.lower()
+                phrase_like = f"%{clean_q}%"
+                tokens = [t for t in re.split(r"[\s,\-\+]+", clean_q) if len(t) >= 2]
+
+                token_conditions = []
+                for t in tokens:
+                    t_like = f"%{t}%"
+                    token_conditions.append(
+                        or_(
+                            func.lower(AlternativeItem.product_name).like(t_like),
+                            func.lower(AlternativeStore.name).like(t_like),
+                            func.lower(AlternativeItem.category).like(t_like),
+                            func.lower(AlternativeStore.slug).like(t_like),
+                            func.lower(AlternativeItem.recommendation_note).like(t_like),
+                        )
                     )
-                )
+
+                text_match_filter = or_(*token_conditions) if token_conditions else None
+
                 if len(search_term) >= 3:
                     try:
                         query_vector = VectorService.generate_embedding(search_term)
                     except Exception:
                         query_vector = None
 
-            if query_vector is not None:
-                # Ordenar por similitud vectorial pgvector si se generó embedding
-                stmt = stmt.order_by(AlternativeItem.embedding.cosine_distance(query_vector))
+                cosine_sim = (
+                    (1 - AlternativeItem.embedding.cosine_distance(query_vector))
+                    if query_vector is not None
+                    else 0.0
+                )
+
+                # Ponderación híbrida: coincidencia exacta de frase (+3.0) + tokens (+1.5) + semántica (+1.0) + ahorro
+                relevance_score = (
+                    case(
+                        (func.lower(AlternativeItem.product_name).like(phrase_like), 3.0),
+                        (text_match_filter if text_match_filter is not None else False, 1.5),
+                        else_=0.0
+                    )
+                    + cosine_sim
+                    + (AlternativeItem.savings_percentage / 100.0)
+                ).label("relevance")
+
+                # Filtro estricto: coincidencia textual O similitud semántica alta (>= 0.70)
+                if text_match_filter is not None:
+                    stmt = stmt.where(
+                        or_(
+                            text_match_filter,
+                            cosine_sim >= 0.70
+                        )
+                    )
+                else:
+                    stmt = stmt.where(cosine_sim >= 0.70)
+
+                stmt = stmt.order_by(desc("relevance"))
             else:
                 stmt = stmt.order_by(desc(AlternativeItem.savings_percentage))
 
