@@ -9,7 +9,15 @@ interface RadarProductCardProps {
 
 const STORE_BADGE_STYLE: Record<string, { bg: string; text: string; border: string }> = {
   el_carnicero: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
+  dona_carne: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  comercial_castro: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
   acuenta: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  alvi: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  central_mayorista: { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-200' },
+  la_oferta: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  comercial_teba: { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  distribuidora_santiago: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  abu_gosh: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
   lo_valledor: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
   mayorista_10: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' }
 };

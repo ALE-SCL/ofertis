@@ -59,9 +59,9 @@ export function RadarAlternativoView() {
   };
 
   const categories = [
-    { id: 'todos', label: 'Todas las Oportunidades', icon: Target },
-    { id: 'carnes', label: 'Carnes Directas (El Carnicero)', icon: Flame },
-    { id: 'despensa', label: 'Abarrotes y Despensa (aCuenta)', icon: ShoppingBag },
+    { id: 'todos', label: 'Todos los Canales (12 Tiendas)', icon: Target },
+    { id: 'carnes', label: 'Carnicerías Directas (El Carnicero, Doña Carne, Castro)', icon: Flame },
+    { id: 'despensa', label: 'Mayoristas y Despensa (Alvi, Central, aCuenta, Teba, Santiago)', icon: ShoppingBag },
     { id: 'frutas_verduras', label: 'Frutas y Verduras (Lo Valledor)', icon: Layers },
     { id: 'lacteos_huevos', label: 'Huevos y Lácteos', icon: Sparkles },
   ];
@@ -73,15 +73,15 @@ export function RadarAlternativoView() {
         <div className="max-w-3xl">
           <div className="inline-flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200 mb-3">
             <Target className="w-3.5 h-3.5" />
-            <span>Búsqueda en Canales Alternativos & Mayoristas</span>
+            <span>Búsqueda en 12 Canales Alternativos & Mayoristas</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-            Ahorra hasta un <span className="text-emerald-600">65%</span> en <span className="text-rose-600">El Carnicero</span>, <span className="text-amber-600">aCuenta</span> y <span className="text-emerald-700">Lo Valledor</span>.
+            Ahorra hasta un <span className="text-emerald-600">65%</span> en <span className="text-rose-600">Doña Carne</span>, <span className="text-blue-600">Alvi</span>, <span className="text-amber-600">Central Mayorista</span> y más.
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 mt-2">
-            Comparamos en tiempo real las alternativas a las 4 cadenas de supermercados para que aproveches precios por mayor, venta directa de carnicerías y bodegas discount.
+            Comparamos en tiempo real carnicerías directas, supermercados mayoristas, bodegas y distribuidoras de alimentos (Alvi, Central Mayorista, Comercial Castro, La Oferta, Comercial Teba, Distribuidora Santiago, Abu-Gosh, El Carnicero, Lo Valledor y aCuenta).
           </p>
 
           {/* Formulario de Búsqueda */}
@@ -92,7 +92,7 @@ export function RadarAlternativoView() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Busca por corte o producto alternativo (ej: 'lomo liso', 'posta', 'papas', 'tomates', 'atún', 'fideos')..."
+                placeholder="Busca por corte, producto o tienda (ej: 'lomo liso', 'Doña Carne', 'Alvi', 'arroz', 'aceite', 'fideos')..."
                 className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all shadow-inner"
               />
             </div>
@@ -108,7 +108,7 @@ export function RadarAlternativoView() {
           {/* Sugerencias Rápidas */}
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <span className="font-semibold">Sugerencias:</span>
-            {['Lomo Liso', 'Papas', 'Tomates', 'Cebollas', 'Fideos', 'Atún', 'Posta Negra', 'Huevos', 'Pulpa Cerdo'].map((tag) => (
+            {['Doña Carne', 'Alvi', 'Central Mayorista', 'Castro', 'La Oferta', 'Comercial Teba', 'Lomo Liso', 'Papas Lo Valledor', 'Arroz Fardo', 'Aceite Caja'].map((tag) => (
               <button
                 key={tag}
                 type="button"

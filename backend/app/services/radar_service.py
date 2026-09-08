@@ -83,6 +83,94 @@ ALTERNATIVE_STORES = [
         "description": "Cadena mayorista del grupo SMU orientada al ahorro familiar con escalas de descuento a partir de 3 unidades.",
         "coverage": "Arica a Puerto Montt",
         "highlight": "Escala de precios por volumen en abarrotes"
+    },
+    {
+        "id": "dona_carne",
+        "name": "Doña Carne (Carnicería Directa)",
+        "type": "CARNICERIA_DIRECTA",
+        "type_label": "Carnicería Directa",
+        "badge_color": "rose",
+        "website": "https://ventasonline.xn--doacarne-e3a.cl",
+        "description": "Cadena tradicional de carnicerías con más de 30 locales y venta online Shopify con precios convenientes por kilo.",
+        "coverage": "Región Metropolitana, Valparaíso y Maule",
+        "highlight": "Cortes parrilleros y diarios con ahorro de hasta $4.000/kg"
+    },
+    {
+        "id": "alvi",
+        "name": "Alvi Supermercados Mayoristas (SMU)",
+        "type": "SUPERMERCADO_MAYORISTA",
+        "type_label": "Supermercado Mayorista",
+        "badge_color": "blue",
+        "website": "https://www.alvi.cl",
+        "description": "Cadena mayorista de SMU para comerciantes y familias con precios especiales por bulto a partir de 3 unidades.",
+        "coverage": "Arica a Puerto Montt (más de 30 sucursales)",
+        "highlight": "Ahorro de 15% a 30% en fardos de arroz, aceite y lácteos"
+    },
+    {
+        "id": "central_mayorista",
+        "name": "Central Mayorista (Walmart Chile)",
+        "type": "SUPERMERCADO_MAYORISTA",
+        "type_label": "Club Mayorista",
+        "badge_color": "amber",
+        "website": "https://www.centralmayorista.cl",
+        "description": "Formato club de precios de Walmart Chile enfocado en compras por bulto cerrado y fardo para el ahorro familiar.",
+        "coverage": "Región Metropolitana y principales capitales regionales",
+        "highlight": "Precios de bulto cerrado en abarrotes y conservas"
+    },
+    {
+        "id": "comercial_castro",
+        "name": "Comercial Castro Mayorista",
+        "type": "CARNICERIA_MAYORISTA",
+        "type_label": "Mayorista Carnes y Cecinas",
+        "badge_color": "rose",
+        "website": "https://comercialcastro.cl",
+        "description": "Especialistas mayoristas en piezas enteras de carne al vacío, cecinas por pieza y quesos para el hogar y negocio.",
+        "coverage": "Santiago, Buin, San Bernardo, Recoleta y Lo Valledor",
+        "highlight": "Piezas enteras de carne con hasta 35% de descuento vs retail"
+    },
+    {
+        "id": "la_oferta",
+        "name": "Supermercados Mayoristas La Oferta",
+        "type": "DISTRIBUIDORA_MAYORISTA",
+        "type_label": "Distribuidora Mayorista",
+        "badge_color": "purple",
+        "website": "https://laoferta.cl",
+        "description": "Distribuidor mayorista de abarrotes, confites, snacks, salsas y despensa para almacenes y hogares.",
+        "coverage": "Santiago y despacho a regiones",
+        "highlight": "Precios por caja y fardo en despensa básica"
+    },
+    {
+        "id": "comercial_teba",
+        "name": "Comercial Teba Distribuidora",
+        "type": "DISTRIBUIDORA_MAYORISTA",
+        "type_label": "Distribuidora de Alimentos",
+        "badge_color": "teal",
+        "website": "https://comercialteba.cl",
+        "description": "Distribuidora de abarrotes, harinas, aceites, conservas y aseo por volumen para abastecimiento familiar.",
+        "coverage": "Región Metropolitana y comunas aledañas",
+        "highlight": "Precios directos en fardos de arroz, azúcar y aceite"
+    },
+    {
+        "id": "distribuidora_santiago",
+        "name": "Distribuidora Santiago",
+        "type": "DISTRIBUIDORA_MAYORISTA",
+        "type_label": "Distribuidora Mayorista",
+        "badge_color": "emerald",
+        "website": "https://www.distribuidorasantiago.cl",
+        "description": "Mayorista online de cajas cerradas de conservas, legumbres, arroz y fideos.",
+        "coverage": "Santiago Centro y comunas del Gran Santiago",
+        "highlight": "Descuentos por escala en sacos de legumbres y fardos"
+    },
+    {
+        "id": "abu_gosh",
+        "name": "Distribuidora Abu-Gosh",
+        "type": "DISTRIBUIDORA_MAYORISTA",
+        "type_label": "Distribuidor Mayorista",
+        "badge_color": "indigo",
+        "website": "https://www.abugosh.cl",
+        "description": "Distribución mayorista tradicional de alimentos, lácteos, café y abarrotes por embalaje original.",
+        "coverage": "Zona Central y distribución regional",
+        "highlight": "Venta al por mayor en abarrotes y fiambres"
     }
 ]
 
@@ -364,6 +452,278 @@ RAW_ALTERNATIVE_ITEMS = [
         "purchase_url": "https://elcarnicero.cl/asiento-nacional-1-kg",
         "is_wholesale": False,
         "advice": "Corte magro y blando con $1.000 de ahorro por kilo."
+    },
+
+    # --- DOÑA CARNE (CARNICERÍA DIRECTA) ---
+    {
+        "sku": "DC-001",
+        "product_name": "Lomo Liso Vacuno Doña Carne 1 kg",
+        "category": "carnes",
+        "store_id": "dona_carne",
+        "store_name": "Doña Carne (Carnicería Directa)",
+        "store_type": "CARNICERIA_DIRECTA",
+        "unit": "kg",
+        "price": 12990.0,
+        "unit_price": 12990.0,
+        "traditional_benchmark_unit_price": 16990.0,
+        "benchmark_label": "Lomo Liso Retail ($16.990/kg)",
+        "purchase_url": "https://ventasonline.xn--doacarne-e3a.cl/collections/vacuno",
+        "is_wholesale": False,
+        "advice": "Ahorras $4.000 por kilo en lomo liso fresco de corte directo en Doña Carne."
+    },
+    {
+        "sku": "DC-002",
+        "product_name": "Posta Negra Vacuno Especial Doña Carne 1 kg",
+        "category": "carnes",
+        "store_id": "dona_carne",
+        "store_name": "Doña Carne (Carnicería Directa)",
+        "store_type": "CARNICERIA_DIRECTA",
+        "unit": "kg",
+        "price": 9990.0,
+        "unit_price": 9990.0,
+        "traditional_benchmark_unit_price": 12990.0,
+        "benchmark_label": "Posta Negra Retail ($12.990/kg)",
+        "purchase_url": "https://ventasonline.xn--doacarne-e3a.cl/collections/vacuno",
+        "is_wholesale": False,
+        "advice": "Posta negra seleccionada a $9.990 por kilo (ahorras $3.000/kg frente a las 4 grandes cadenas)."
+    },
+    {
+        "sku": "DC-003",
+        "product_name": "Pechuga Entera de Pollo Doña Carne 1 kg",
+        "category": "carnes",
+        "store_id": "dona_carne",
+        "store_name": "Doña Carne (Carnicería Directa)",
+        "store_type": "CARNICERIA_DIRECTA",
+        "unit": "kg",
+        "price": 3990.0,
+        "unit_price": 3990.0,
+        "traditional_benchmark_unit_price": 5990.0,
+        "benchmark_label": "Pechuga Entera Pollo Retail ($5.990/kg)",
+        "purchase_url": "https://ventasonline.xn--doacarne-e3a.cl/collections/pollo",
+        "is_wholesale": False,
+        "advice": "Pechuga de pollo a menos de $4.000 por kilo con 33.4% de ahorro."
+    },
+
+    # --- ALVI (SUPERMERCADOS MAYORISTAS SMU) ---
+    {
+        "sku": "ALV-001",
+        "product_name": "Arroz Tucapel Grado 1 (Fardo 10x1 kg)",
+        "category": "despensa",
+        "store_id": "alvi",
+        "store_name": "Alvi Supermercados Mayoristas (SMU)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "fardo 10 kg ($1.250/kg)",
+        "price": 12500.0,
+        "unit_price": 1250.0,
+        "traditional_benchmark_unit_price": 1790.0,
+        "benchmark_label": "Arroz Tucapel 1kg en Supermercados ($1.790)",
+        "purchase_url": "https://www.alvi.cl/catalogo/arroz-tucapel-10kg",
+        "is_wholesale": True,
+        "advice": "Comprando el fardo de 10 paquetes en Alvi pagas $1.250 por kilo frente a los $1.790 del retail (ahorras $5.400 en el bulto)."
+    },
+    {
+        "sku": "ALV-002",
+        "product_name": "Aceite Maravilla 100% Puro (Caja 12x900 ml)",
+        "category": "despensa",
+        "store_id": "alvi",
+        "store_name": "Alvi Supermercados Mayoristas (SMU)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "caja 12 botellas ($1.790/un)",
+        "price": 21480.0,
+        "unit_price": 1790.0,
+        "traditional_benchmark_unit_price": 2490.0,
+        "benchmark_label": "Aceite Maravilla 900ml Retail ($2.490)",
+        "purchase_url": "https://www.alvi.cl/catalogo/aceite-maravilla-caja",
+        "is_wholesale": True,
+        "advice": "Ahorro de $700 por botella de aceite puro comprando la caja cerrada en Alvi (28.1% de descuento)."
+    },
+    {
+        "sku": "ALV-003",
+        "product_name": "Leche Entera Colun (Caja 12x1 L)",
+        "category": "lacteos_huevos",
+        "store_id": "alvi",
+        "store_name": "Alvi Supermercados Mayoristas (SMU)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "caja 12 litros ($990/L)",
+        "price": 11880.0,
+        "unit_price": 990.0,
+        "traditional_benchmark_unit_price": 1290.0,
+        "benchmark_label": "Leche Colun 1L Retail ($1.290)",
+        "purchase_url": "https://www.alvi.cl/catalogo/leche-colun-caja-12l",
+        "is_wholesale": True,
+        "advice": "Comprando la caja en Alvi el litro queda en $990 frente a los $1.290 del retail tradicional."
+    },
+
+    # --- CENTRAL MAYORISTA (WALMART CHILE) ---
+    {
+        "sku": "CM-001",
+        "product_name": "Fideos Spaghetti Carozzi N°5 (Fardo 20x400 g)",
+        "category": "despensa",
+        "store_id": "central_mayorista",
+        "store_name": "Central Mayorista (Walmart Chile)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "fardo 20 paquetes ($690/un)",
+        "price": 13800.0,
+        "unit_price": 690.0,
+        "traditional_benchmark_unit_price": 1090.0,
+        "benchmark_label": "Spaghetti Carozzi 400g Retail ($1.090)",
+        "purchase_url": "https://www.centralmayorista.cl/fideos-carozzi-spaghetti-5",
+        "is_wholesale": True,
+        "advice": "Ahorro de $400 por paquete de fideos (36.7%) comprando el fardo mayorista en Central Mayorista."
+    },
+    {
+        "sku": "CM-002",
+        "product_name": "Atún Lomitos en Aceite (Bandeja 24x160 g)",
+        "category": "despensa",
+        "store_id": "central_mayorista",
+        "store_name": "Central Mayorista (Walmart Chile)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "bandeja 24 latas ($990/lata)",
+        "price": 23760.0,
+        "unit_price": 990.0,
+        "traditional_benchmark_unit_price": 1590.0,
+        "benchmark_label": "Atún Lomitos Retail ($1.590/lata)",
+        "purchase_url": "https://www.centralmayorista.cl/atun-lomitos-bandeja",
+        "is_wholesale": True,
+        "advice": "Lomitos de atún a $990 por lata adquiriendo la bandeja de 24 unidades ($14.400 de ahorro total)."
+    },
+
+    # --- COMERCIAL CASTRO MAYORISTA ---
+    {
+        "sku": "CC-001",
+        "product_name": "Lomo Liso Vacuno V/A Pieza Entera (aprox 4 kg)",
+        "category": "carnes",
+        "store_id": "comercial_castro",
+        "store_name": "Comercial Castro Mayorista",
+        "store_type": "CARNICERIA_MAYORISTA",
+        "unit": "kg en pieza",
+        "price": 11990.0,
+        "unit_price": 11990.0,
+        "traditional_benchmark_unit_price": 16990.0,
+        "benchmark_label": "Lomo Liso Fraccionado Retail ($16.990/kg)",
+        "purchase_url": "https://comercialcastro.cl/carnes/lomo-liso-pieza",
+        "is_wholesale": True,
+        "advice": "Comprando la pieza al vacío en Comercial Castro ahorras $5.000 por kilo frente al retail (29.4%)."
+    },
+    {
+        "sku": "CC-002",
+        "product_name": "Posta Negra Vacuno Nacional Pieza (aprox 5 kg)",
+        "category": "carnes",
+        "store_id": "comercial_castro",
+        "store_name": "Comercial Castro Mayorista",
+        "store_type": "CARNICERIA_MAYORISTA",
+        "unit": "kg en pieza",
+        "price": 9490.0,
+        "unit_price": 9490.0,
+        "traditional_benchmark_unit_price": 12990.0,
+        "benchmark_label": "Posta Negra Retail ($12.990/kg)",
+        "purchase_url": "https://comercialcastro.cl/carnes/posta-negra-pieza",
+        "is_wholesale": True,
+        "advice": "Pieza entera de posta negra a $9.490/kg para congelar en porciones familiares (26.9% de ahorro)."
+    },
+
+    # --- SUPERMERCADOS LA OFERTA ---
+    {
+        "sku": "LO-001",
+        "product_name": "Harina de Trigo Selecta Sin Polvos (Fardo 10x1 kg)",
+        "category": "despensa",
+        "store_id": "la_oferta",
+        "store_name": "Supermercados Mayoristas La Oferta",
+        "store_type": "DISTRIBUIDORA_MAYORISTA",
+        "unit": "fardo 10 kg ($890/kg)",
+        "price": 8900.0,
+        "unit_price": 890.0,
+        "traditional_benchmark_unit_price": 1390.0,
+        "benchmark_label": "Harina Selecta 1kg Retail ($1.390)",
+        "purchase_url": "https://laoferta.cl/catalogo/harina-selecta-fardo",
+        "is_wholesale": True,
+        "advice": "Fardo de 10 paquetes de harina Selecta a $890 por kilo con 36.0% de descuento en La Oferta."
+    },
+    {
+        "sku": "LO-002",
+        "product_name": "Salsa de Tomates Italiana (Bandeja 24x200 g)",
+        "category": "despensa",
+        "store_id": "la_oferta",
+        "store_name": "Supermercados Mayoristas La Oferta",
+        "store_type": "DISTRIBUIDORA_MAYORISTA",
+        "unit": "bandeja 24 un ($390/un)",
+        "price": 9360.0,
+        "unit_price": 390.0,
+        "traditional_benchmark_unit_price": 690.0,
+        "benchmark_label": "Salsa Tomate 200g Retail ($690)",
+        "purchase_url": "https://laoferta.cl/catalogo/salsa-tomate-bandeja",
+        "is_wholesale": True,
+        "advice": "Salsa de tomates a $390 por unidad comprando la bandeja cerrada (43.5% de ahorro)."
+    },
+
+    # --- COMERCIAL TEBA DISTRIBUIDORA ---
+    {
+        "sku": "TEB-001",
+        "product_name": "Aceite Vegetal Belmont (Caja 12x900 ml)",
+        "category": "despensa",
+        "store_id": "comercial_teba",
+        "store_name": "Comercial Teba Distribuidora",
+        "store_type": "DISTRIBUIDORA_MAYORISTA",
+        "unit": "caja 12 un ($1.390/un)",
+        "price": 16680.0,
+        "unit_price": 1390.0,
+        "traditional_benchmark_unit_price": 1990.0,
+        "benchmark_label": "Aceite Vegetal 900ml Retail ($1.990)",
+        "purchase_url": "https://comercialteba.cl/productos/aceite-belmont-caja",
+        "is_wholesale": True,
+        "advice": "Botellas de aceite de 900 ml a $1.390 comprando la caja cerrada en distribuidora Teba."
+    },
+    {
+        "sku": "TEB-002",
+        "product_name": "Azúcar Iansa Granulada (Fardo 10x1 kg)",
+        "category": "despensa",
+        "store_id": "comercial_teba",
+        "store_name": "Comercial Teba Distribuidora",
+        "store_type": "DISTRIBUIDORA_MAYORISTA",
+        "unit": "fardo 10 kg ($1.090/kg)",
+        "price": 10900.0,
+        "unit_price": 1090.0,
+        "traditional_benchmark_unit_price": 1490.0,
+        "benchmark_label": "Azúcar Iansa 1kg Retail ($1.490)",
+        "purchase_url": "https://comercialteba.cl/productos/azucar-iansa-fardo",
+        "is_wholesale": True,
+        "advice": "Kilo de azúcar Iansa a $1.090 en fardo cerrado (ahorro de $400 por kilo)."
+    },
+
+    # --- DISTRIBUIDORA SANTIAGO ---
+    {
+        "sku": "DS-001",
+        "product_name": "Lentejas Seleccionadas 4 mm (Saco 10 kg)",
+        "category": "despensa",
+        "store_id": "distribuidora_santiago",
+        "store_name": "Distribuidora Santiago",
+        "store_type": "DISTRIBUIDORA_MAYORISTA",
+        "unit": "saco 10 kg ($1.690/kg)",
+        "price": 16900.0,
+        "unit_price": 1690.0,
+        "traditional_benchmark_unit_price": 2590.0,
+        "benchmark_label": "Lentejas 1kg Retail ($2.590)",
+        "purchase_url": "https://www.distribuidorasantiago.cl/lentejas-saco-10kg",
+        "is_wholesale": True,
+        "advice": "Saco de lentejas con ahorro de $900 por kilo (34.7%) en Distribuidora Santiago."
+    },
+
+    # --- DISTRIBUIDORA ABU-GOSH ---
+    {
+        "sku": "AG-001",
+        "product_name": "Café Instantáneo Tradicional (Caja 12x170 g)",
+        "category": "despensa",
+        "store_id": "abu_gosh",
+        "store_name": "Distribuidora Abu-Gosh",
+        "store_type": "DISTRIBUIDORA_MAYORISTA",
+        "unit": "caja 12 frascos ($3.190/un)",
+        "price": 38280.0,
+        "unit_price": 3190.0,
+        "traditional_benchmark_unit_price": 4490.0,
+        "benchmark_label": "Café Frasco 170g Retail ($4.490)",
+        "purchase_url": "https://www.abugosh.cl/catalogo/cafe-caja-12",
+        "is_wholesale": True,
+        "advice": "Frasco de café 170g con $1.300 de ahorro por unidad comprando por embalaje cerrado."
     }
 ]
 
@@ -400,6 +760,22 @@ class RadarService:
             "EC-005": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
             "EC-006": "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=600&q=80",
             "EC-007": "https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=600&q=80",
+            "DC-001": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
+            "DC-002": "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?auto=format&fit=crop&w=600&q=80",
+            "DC-003": "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=600&q=80",
+            "ALV-001": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80",
+            "ALV-002": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80",
+            "ALV-003": "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=600&q=80",
+            "CM-001": "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=600&q=80",
+            "CM-002": "https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=600&q=80",
+            "CC-001": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
+            "CC-002": "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?auto=format&fit=crop&w=600&q=80",
+            "LO-001": "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
+            "LO-002": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80",
+            "TEB-001": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80",
+            "TEB-002": "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?auto=format&fit=crop&w=600&q=80",
+            "DS-001": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+            "AG-001": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80",
         }
 
         category_fallback_images = {
@@ -409,17 +785,21 @@ class RadarService:
             "lacteos_huevos": "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=80",
         }
 
-        search_term = q.strip().lower() if q and q.strip() else None
+        def clean_txt(t: str) -> str:
+            return t.lower().replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u').replace('ñ', 'n')
+
+        search_term = clean_txt(q.strip()) if q and q.strip() else None
 
         for item in RAW_ALTERNATIVE_ITEMS:
             if category and category != "todos" and item["category"] != category:
                 continue
 
             if search_term:
-                p_name = item["product_name"].lower()
-                s_name = item["store_name"].lower()
-                cat = item["category"].lower()
-                if search_term not in p_name and search_term not in s_name and search_term not in cat:
+                p_name = clean_txt(item["product_name"])
+                s_name = clean_txt(item["store_name"])
+                cat = clean_txt(item["category"])
+                s_id = clean_txt(item.get("store_id", ""))
+                if search_term not in p_name and search_term not in s_name and search_term not in cat and search_term not in s_id:
                     continue
 
             alt_p = item["unit_price"]
