@@ -1,5 +1,4 @@
-import React from 'react';
-import { Tag, ExternalLink, CheckCircle2, Flame, Sparkles } from 'lucide-react';
+import { Tag, ExternalLink, Flame } from 'lucide-react';
 import { PriceOpportunity } from '../types/radar';
 
 interface RadarProductCardProps {

@@ -11,7 +11,8 @@ import {
   Layers, 
   Sparkles,
   ExternalLink,
-  CheckCircle2
+  CheckCircle2,
+  Coins
 } from 'lucide-react';
 import { PriceOpportunity, AlternativeStore, RadarKPIs } from '../types/radar';
 import { radarService } from '../services/radarService';
@@ -71,9 +72,9 @@ export function RadarAlternativoView() {
       {/* Hero & Buscador de Radar Alternativo */}
       <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm relative overflow-hidden">
         <div className="max-w-3xl">
-          <div className="inline-flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200 mb-3">
-            <Target className="w-3.5 h-3.5" />
-            <span>Búsqueda en 12 Canales Alternativos & Mayoristas</span>
+          <div className="inline-flex items-center space-x-2 bg-emerald-50 text-emerald-800 px-3.5 py-1.5 rounded-full text-xs font-bold border border-emerald-200 mb-3 shadow-xs">
+            <Coins className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Los secretos del ahorro: compra directa a mayoristas, carnicerías y ferias</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">

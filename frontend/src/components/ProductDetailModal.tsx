@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { X, ExternalLink, TrendingDown, Bell, CheckCircle, Store } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { X, ExternalLink, TrendingDown, Bell, Store } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
-import { CanonicalProductDetail, SupermarketItemComparison } from '../types';
+import { CanonicalProductDetail } from '../types';
 
 interface ProductDetailModalProps {
   canonicalId: number | null;

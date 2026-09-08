@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Sparkles, Filter, AlertCircle, ShoppingBag, RefreshCw } from 'lucide-react';
+import { Search, Filter, AlertCircle, ShoppingBag, RefreshCw, HeartHandshake } from 'lucide-react';
 import axios from 'axios';
 import { Navbar } from './components/Navbar';
 import { MiningStatsBanner } from './components/MiningStatsBanner';
@@ -171,20 +171,20 @@ export function App() {
 
         {activeTab === 'retail' ? (
           <>
-            {/* Hero & Buscador Semántico */}
+            {/* Hero & Buscador */}
             <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm relative overflow-hidden">
               <div className="max-w-3xl">
-                <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 mb-3">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Búsqueda Semántica Vectorial con pgvector</span>
+                <div className="inline-flex items-center space-x-2 bg-rose-50 text-rose-700 px-3.5 py-1.5 rounded-full text-xs font-bold border border-rose-200 mb-3 shadow-xs">
+                  <HeartHandshake className="w-4 h-4 text-rose-500" />
+                  <span>Cero engaños: el comparador independiente que defiende tu presupuesto familiar</span>
                 </div>
 
                 <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-                  Encuentra el precio real por kilo o litro en <span className="text-blue-600">Lider</span>, <span className="text-emerald-600">Jumbo</span>, <span className="text-rose-600">Santa Isabel</span> y <span className="text-red-600">Unimarc</span>.
+                  Que no te cobren de más: encuentra el precio real por kilo y litro en <span className="text-blue-600">Lider</span>, <span className="text-emerald-600">Jumbo</span>, <span className="text-rose-600">Santa Isabel</span> y <span className="text-red-600">Unimarc</span>.
                 </h1>
 
                 <p className="text-sm sm:text-base text-slate-600 mt-2">
-                  Normalizamos todos los tamaños y cortes para que no pagues de más en carnes, lácteos, arroz y pastas.
+                  Estandarizamos todos los envases y formatos al mismo peso y volumen ($/kg y $/litro) para que descubras qué supermercado es más conveniente de verdad y tu plata rinda más a fin de mes.
                 </p>
 
                 {/* Input de Búsqueda */}
@@ -195,7 +195,7 @@ export function App() {
                       type="text"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Busca por corte o producto (ej: 'lomo liso', 'posta negra', 'leche descremada', 'arroz grado 1')..."
+                      placeholder="¿Qué necesitas comprar hoy? (ej: 'leche colun', 'lomo liso', 'posta negra', 'arroz grado 1', 'aceite', 'fideos')..."
                       className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner"
                     />
                   </div>
@@ -204,18 +204,18 @@ export function App() {
                     type="submit"
                     className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center space-x-2"
                   >
-                    <span>Buscar</span>
+                    <span>Buscar Mejor Precio</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleLiveRefresh}
                     disabled={loading}
-                    title="Consulta en tiempo real las APIs de Jumbo, Santa Isabel, Unimarc y Lider"
+                    title="Consulta en tiempo real los precios oficiales de Jumbo, Santa Isabel, Unimarc y Lider"
                     className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold px-5 py-3.5 rounded-2xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-2 disabled:opacity-50"
                   >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    <span>Actualizar Precios en Vivo</span>
+                    <span>Comprobar Precios de Hoy</span>
                   </button>
                 </form>
 
