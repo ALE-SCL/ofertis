@@ -378,12 +378,49 @@ class RadarService:
         return ALTERNATIVE_STORES
 
     @classmethod
-    def get_opportunities(cls, category: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_opportunities(cls, category: Optional[str] = None, q: Optional[str] = None) -> List[Dict[str, Any]]:
         results = []
+
+        product_image_map = {
+            "LV-001": "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=600&q=80",
+            "LV-002": "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=600&q=80",
+            "LV-003": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80",
+            "LV-004": "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=80",
+            "ACU-001": "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=600&q=80",
+            "ACU-002": "https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=600&q=80",
+            "ACU-003": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80",
+            "ACU-004": "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
+            "ACU-005": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80",
+            "ACU-006": "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?auto=format&fit=crop&w=600&q=80",
+            "ACU-007": "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=600&q=80",
+            "EC-001": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
+            "EC-002": "https://images.unsplash.com/photo-1546964124-0cce460f38ef?auto=format&fit=crop&w=600&q=80",
+            "EC-003": "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?auto=format&fit=crop&w=600&q=80",
+            "EC-004": "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=600&q=80",
+            "EC-005": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+            "EC-006": "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=600&q=80",
+            "EC-007": "https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=600&q=80",
+        }
+
+        category_fallback_images = {
+            "carnes": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
+            "frutas_verduras": "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=600&q=80",
+            "despensa": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80",
+            "lacteos_huevos": "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=80",
+        }
+
+        search_term = q.strip().lower() if q and q.strip() else None
 
         for item in RAW_ALTERNATIVE_ITEMS:
             if category and category != "todos" and item["category"] != category:
                 continue
+
+            if search_term:
+                p_name = item["product_name"].lower()
+                s_name = item["store_name"].lower()
+                cat = item["category"].lower()
+                if search_term not in p_name and search_term not in s_name and search_term not in cat:
+                    continue
 
             alt_p = item["unit_price"]
             trad_p = item["traditional_benchmark_unit_price"]
@@ -399,6 +436,11 @@ class RadarService:
             else:
                 deal_level = "AHORRO_MODERADO"
                 deal_label = "🏷️ Ahorro Moderado (5% a 15%)"
+
+            img = product_image_map.get(
+                item["sku"],
+                category_fallback_images.get(item["category"], "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80")
+            )
 
             results.append({
                 "id": item["sku"],
@@ -418,7 +460,8 @@ class RadarService:
                 "deal_label": deal_label,
                 "is_wholesale": item.get("is_wholesale", False),
                 "purchase_url": item["purchase_url"],
-                "recommendation_note": item["advice"]
+                "recommendation_note": item["advice"],
+                "image_url": img
             })
 
         # Ordenar por mayor porcentaje de ahorro

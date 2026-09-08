@@ -8,13 +8,14 @@ router = APIRouter(prefix="/radar", tags=["Radar Alternativo & Canales de Ahorro
 @router.get("/opportunities")
 async def get_radar_opportunities(
     category: Optional[str] = Query(None, description="Filtro opcional: 'carnes', 'despensa', 'frutas_verduras', 'lacteos_huevos'"),
+    q: Optional[str] = Query(None, description="Búsqueda por texto (corte, producto o tienda)")
 ):
     """
     Retorna las oportunidades de ahorro comprobadas en canales alternativos
     (El Carnicero, SuperBodega aCuenta, Mercado Lo Valledor) con cálculo del spread
     frente a los precios del retail tradicional (Jumbo, Santa Isabel, Unimarc, Lider).
     """
-    return RadarService.get_opportunities(category=category)
+    return RadarService.get_opportunities(category=category, q=q)
 
 
 @router.get("/stores")

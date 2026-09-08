@@ -29,6 +29,7 @@ export interface PriceOpportunity {
   is_wholesale: boolean;
   purchase_url: string;
   recommendation_note: string;
+  image_url?: string;
 }
 
 export interface RadarKPIs {

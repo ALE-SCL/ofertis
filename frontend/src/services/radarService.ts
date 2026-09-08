@@ -4,8 +4,14 @@ import { PriceOpportunity, AlternativeStore, RadarKPIs } from '../types/radar';
 const API_BASE_URL = 'http://localhost:8000/api/v1/radar';
 
 export const radarService = {
-  async getOpportunities(category?: string): Promise<PriceOpportunity[]> {
-    const params = category && category !== 'todos' ? { category } : {};
+  async getOpportunities(category?: string, q?: string): Promise<PriceOpportunity[]> {
+    const params: Record<string, string> = {};
+    if (category && category !== 'todos') {
+      params.category = category;
+    }
+    if (q && q.trim()) {
+      params.q = q.trim();
+    }
     const res = await axios.get(`${API_BASE_URL}/opportunities`, { params });
     return res.data;
   },
