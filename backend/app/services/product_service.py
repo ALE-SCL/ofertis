@@ -1,7 +1,8 @@
 from typing import List, Optional, Dict, Any
 from decimal import Decimal
+import re
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, or_, case
 from sqlalchemy.orm import selectinload
 
 from app.models.canonical_product import CanonicalProduct
@@ -27,15 +28,52 @@ class ProductService:
         limit: int = 20
     ) -> List[ProductSearchResult]:
         """
-        Búsqueda híbrida: similitud semántica con pgvector combinada con coincidencias de texto.
+        Búsqueda híbrida de alta precisión: combina coincidencia textual ponderada
+        (en títulos canónicos, marcas y títulos de SKUs en tiendas) con similitud
+        semántica vectorial (pgvector) y filtrado estricto de relevancia.
         """
-        query_vector = VectorService.generate_embedding(query)
+        clean_q = query.strip()
+        if not clean_q:
+            return []
 
-        # Consulta base con pgvector (distancia de coseno)
+        # Generar vector semántico para el término de búsqueda
+        query_vector = VectorService.generate_embedding(clean_q)
+
+        # Tokens significativos para búsqueda textual
+        tokens = [t.lower() for t in re.split(r"[\s,\-\+]+", clean_q) if len(t) >= 2]
+
+        token_conditions = []
+        for t in tokens:
+            t_like = f"%{t}%"
+            token_conditions.append(
+                or_(
+                    func.lower(CanonicalProduct.name).like(t_like),
+                    func.lower(CanonicalProduct.brand).like(t_like),
+                    func.lower(CanonicalProduct.description).like(t_like),
+                    func.lower(CanonicalProduct.category).like(t_like),
+                    func.lower(CanonicalProduct.subcategory).like(t_like),
+                    CanonicalProduct.items.any(func.lower(SupermarketItem.store_title).like(t_like))
+                )
+            )
+
+        text_match_filter = or_(*token_conditions) if token_conditions else None
+        cosine_sim = (1 - CanonicalProduct.embedding.cosine_distance(query_vector)).label("similarity")
+
+        phrase_like = f"%{clean_q.lower()}%"
+        relevance_score = (
+            case(
+                (func.lower(CanonicalProduct.name).like(phrase_like), 3.0),
+                (CanonicalProduct.items.any(func.lower(SupermarketItem.store_title).like(phrase_like)), 2.5),
+                (text_match_filter if text_match_filter is not None else False, 1.5),
+                else_=0.0
+            ) + cosine_sim
+        ).label("relevance")
+
         stmt = (
             select(
                 CanonicalProduct,
-                (1 - CanonicalProduct.embedding.cosine_distance(query_vector)).label("similarity")
+                cosine_sim,
+                relevance_score
             )
             .options(
                 selectinload(CanonicalProduct.items).selectinload(SupermarketItem.supermarket),
@@ -43,16 +81,27 @@ class ProductService:
             )
         )
 
+        # Filtro de relevancia estricto: exige coincidencia textual O similitud semántica alta (>= 0.70)
+        if text_match_filter is not None:
+            stmt = stmt.where(
+                or_(
+                    text_match_filter,
+                    cosine_sim >= 0.70
+                )
+            )
+        else:
+            stmt = stmt.where(cosine_sim >= 0.70)
+
         if category and category != "todos":
             stmt = stmt.where(CanonicalProduct.category == category)
 
-        # Ordenar por similitud vectorial descendente
-        stmt = stmt.order_by(desc("similarity")).limit(limit)
+        # Ordenar por relevancia híbrida descendente
+        stmt = stmt.order_by(desc("relevance")).limit(limit)
         result = await self.db.execute(stmt)
         rows = result.all()
 
         results: List[ProductSearchResult] = []
-        for canonical, similarity in rows:
+        for canonical, similarity, relevance in rows:
             # Calcular mejor precio y supermercados disponibles
             unit_prices: List[Decimal] = []
             available_supers: List[str] = []

@@ -67,9 +67,15 @@ class EntityResolutionAgent(BaseAgent):
             )
         else:
             # Crear nueva entidad canónica e indexar su vector
-            canonical_name = f"{item.brand or ''} {item.canonical_subcategory or item.canonical_category}".strip().title()
-            if not canonical_name:
-                canonical_name = item.store_title
+            if item.canonical_subcategory and item.canonical_subcategory.lower() not in ["otros", "general"]:
+                canonical_name = f"{item.brand or ''} {item.canonical_subcategory}".strip().title()
+            elif item.canonical_category and item.canonical_category.lower() not in ["otros", "generica"]:
+                canonical_name = f"{item.brand or ''} {item.canonical_category}".strip().title()
+            else:
+                canonical_name = item.store_title.strip()
+
+            if not canonical_name or canonical_name.lower().endswith(" otros") or canonical_name.lower() == "otros":
+                canonical_name = item.store_title.strip()
 
             new_canonical = CanonicalProduct(
                 name=canonical_name,
