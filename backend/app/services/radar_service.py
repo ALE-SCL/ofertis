@@ -3,6 +3,12 @@ import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, desc, or_
+from app.models.alternative_store import AlternativeStore
+from app.models.alternative_item import AlternativeItem
+from app.services.vector_service import VectorService
+
 logger = logging.getLogger("ofertis.radar_service")
 
 # Benchmarks promedio del retail tradicional (Jumbo, Santa Isabel, Unimarc, Lider)
@@ -724,6 +730,39 @@ RAW_ALTERNATIVE_ITEMS = [
         "purchase_url": "https://www.abugosh.cl/catalogo/cafe-caja-12",
         "is_wholesale": True,
         "advice": "Frasco de café 170g con $1.300 de ahorro por unidad comprando por embalaje cerrado."
+    },
+    # --- MAYORISTA 10 (SMU) ---
+    {
+        "sku": "M10-001",
+        "product_name": "Aceite Vegetal Belmont (Pack 3x900 ml)",
+        "category": "despensa",
+        "store_id": "mayorista_10",
+        "store_name": "Mayorista 10 (SMU)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "pack 3 un ($1.690/un)",
+        "price": 5070.0,
+        "unit_price": 1690.0,
+        "traditional_benchmark_unit_price": 2190.0,
+        "benchmark_label": "Aceite Vegetal 900ml Retail ($2.190)",
+        "purchase_url": "https://www.mayorista10.cl/catalogo/aceite-belmont-pack3",
+        "is_wholesale": True,
+        "advice": "Comprando el pack de 3 unidades en Mayorista 10 ahorras $500 por botella frente al supermercado."
+    },
+    {
+        "sku": "M10-002",
+        "product_name": "Fideos Spaghetti Carozzi N°5 (Pack 5x400 g)",
+        "category": "despensa",
+        "store_id": "mayorista_10",
+        "store_name": "Mayorista 10 (SMU)",
+        "store_type": "SUPERMERCADO_MAYORISTA",
+        "unit": "pack 5 un ($790/un)",
+        "price": 3950.0,
+        "unit_price": 790.0,
+        "traditional_benchmark_unit_price": 990.0,
+        "benchmark_label": "Fideos Spaghetti 400g Retail ($990)",
+        "purchase_url": "https://www.mayorista10.cl/catalogo/fideos-carozzi-pack5",
+        "is_wholesale": True,
+        "advice": "Pack familiar de 5 unidades con precio mayorista unitario de $790 frente a los $990 del retail."
     }
 ]
 
@@ -865,3 +904,147 @@ class RadarService:
             "super_deals_count": super_deals,
             "monitored_stores_count": len(ALTERNATIVE_STORES)
         }
+
+    @classmethod
+    async def get_opportunities_async(
+        cls,
+        db: AsyncSession,
+        category: Optional[str] = None,
+        q: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Retorna oportunidades de ahorro persistidas en PostgreSQL (alternative_items)
+        con búsqueda híbrida (semántica vectorial pgvector y coincidencia textual).
+        """
+        try:
+            stmt = (
+                select(AlternativeItem, AlternativeStore)
+                .join(AlternativeStore, AlternativeItem.store_id == AlternativeStore.id)
+                .where(AlternativeItem.is_available == True)
+            )
+
+            if category and category != "todos":
+                stmt = stmt.where(AlternativeItem.category == category)
+
+            search_term = q.strip() if q and q.strip() else None
+            query_vector = None
+
+            if search_term:
+                clean_q = f"%{search_term.lower()}%"
+                # Filtro textual con ILIKE sobre producto, tienda, categoría o notas
+                stmt = stmt.where(
+                    or_(
+                        func.lower(AlternativeItem.product_name).like(clean_q),
+                        func.lower(AlternativeStore.name).like(clean_q),
+                        func.lower(AlternativeItem.category).like(clean_q),
+                        func.lower(AlternativeStore.slug).like(clean_q),
+                        func.lower(AlternativeItem.recommendation_note).like(clean_q),
+                    )
+                )
+                if len(search_term) >= 3:
+                    try:
+                        query_vector = VectorService.generate_embedding(search_term)
+                    except Exception:
+                        query_vector = None
+
+            if query_vector is not None:
+                # Ordenar por similitud vectorial pgvector si se generó embedding
+                stmt = stmt.order_by(AlternativeItem.embedding.cosine_distance(query_vector))
+            else:
+                stmt = stmt.order_by(desc(AlternativeItem.savings_percentage))
+
+            res = await db.execute(stmt)
+            rows = res.all()
+
+            if not rows:
+                # Fallback al catálogo estático si no hay filas persistidas
+                return cls.get_opportunities(category=category, q=q)
+
+            results: List[Dict[str, Any]] = []
+            for item, store in rows:
+                results.append({
+                    "id": item.sku,
+                    "product_name": item.product_name,
+                    "category": item.category,
+                    "store_id": store.slug,
+                    "store_name": store.name,
+                    "store_type": store.store_type,
+                    "unit": item.unit,
+                    "alternative_price": float(item.current_price),
+                    "unit_price_alternative": float(item.unit_price_normalized),
+                    "traditional_benchmark_price": float(item.traditional_benchmark_price),
+                    "benchmark_label": item.benchmark_label,
+                    "savings_clp": float(item.savings_clp),
+                    "savings_percentage": float(item.savings_percentage),
+                    "deal_level": item.deal_level,
+                    "deal_label": item.deal_label,
+                    "is_wholesale": item.is_wholesale,
+                    "purchase_url": item.purchase_url,
+                    "recommendation_note": item.recommendation_note,
+                    "image_url": item.image_url
+                })
+
+            return results
+        except Exception as e:
+            logger.error(f"Error consultando alternative_items en BD ({e}). Usando fallback en memoria.")
+            return cls.get_opportunities(category=category, q=q)
+
+    @classmethod
+    async def get_alternative_stores_async(cls, db: AsyncSession) -> List[Dict[str, Any]]:
+        """
+        Retorna la lista de tiendas y distribuidores mayoristas registrados en la BD.
+        """
+        try:
+            stmt = select(AlternativeStore).where(AlternativeStore.is_active == True).order_by(AlternativeStore.name)
+            res = await db.execute(stmt)
+            stores = res.scalars().all()
+            if not stores:
+                return cls.get_alternative_stores()
+
+            return [
+                {
+                    "id": s.slug,
+                    "name": s.name,
+                    "type": s.store_type,
+                    "type_label": s.type_label,
+                    "badge_color": s.badge_color,
+                    "website": s.website,
+                    "description": s.description,
+                    "coverage": s.coverage,
+                    "highlight": s.highlight
+                }
+                for s in stores
+            ]
+        except Exception as e:
+            logger.error(f"Error consultando alternative_stores en BD ({e}). Usando fallback.")
+            return cls.get_alternative_stores()
+
+    @classmethod
+    async def get_kpis_async(cls, db: AsyncSession) -> Dict[str, Any]:
+        """
+        Calcula KPIs dinámicos directamente desde la base de datos PostgreSQL.
+        """
+        try:
+            opps = await cls.get_opportunities_async(db=db)
+            if not opps:
+                return cls.get_kpis()
+
+            avg_pct = sum(o["savings_percentage"] for o in opps) / len(opps)
+            max_pct = max(o["savings_percentage"] for o in opps)
+            super_deals = sum(1 for o in opps if o["deal_level"] == "SUPER_AHORRO")
+
+            stmt_stores = select(func.count(AlternativeStore.id)).where(AlternativeStore.is_active == True)
+            res_stores = await db.execute(stmt_stores)
+            store_count = res_stores.scalar() or len(ALTERNATIVE_STORES)
+
+            return {
+                "total_deals": len(opps),
+                "avg_savings_pct": round(avg_pct, 1),
+                "max_savings_pct": round(max_pct, 1),
+                "super_deals_count": super_deals,
+                "monitored_stores_count": store_count
+            }
+        except Exception as e:
+            logger.error(f"Error calculando KPIs de Radar en BD ({e}). Usando fallback.")
+            return cls.get_kpis()
+

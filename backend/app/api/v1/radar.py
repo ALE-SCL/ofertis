@@ -1,5 +1,8 @@
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
 from app.services.radar_service import RadarService
 
 router = APIRouter(prefix="/radar", tags=["Radar Alternativo & Canales de Ahorro"])
@@ -8,27 +11,33 @@ router = APIRouter(prefix="/radar", tags=["Radar Alternativo & Canales de Ahorro
 @router.get("/opportunities")
 async def get_radar_opportunities(
     category: Optional[str] = Query(None, description="Filtro opcional: 'carnes', 'despensa', 'frutas_verduras', 'lacteos_huevos'"),
-    q: Optional[str] = Query(None, description="Búsqueda por texto (corte, producto o tienda)")
+    q: Optional[str] = Query(None, description="Búsqueda por texto (corte, producto o tienda)"),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Retorna las oportunidades de ahorro comprobadas en canales alternativos
-    (El Carnicero, SuperBodega aCuenta, Mercado Lo Valledor) con cálculo del spread
-    frente a los precios del retail tradicional (Jumbo, Santa Isabel, Unimarc, Lider).
+    (Doña Carne, El Carnicero, Alvi, Central Mayorista, SuperBodega aCuenta, Lo Valledor, etc.)
+    persistidas en PostgreSQL con cálculo dinámico del spread frente al retail tradicional.
     """
-    return RadarService.get_opportunities(category=category, q=q)
+    return await RadarService.get_opportunities_async(db=db, category=category, q=q)
 
 
 @router.get("/stores")
-async def get_alternative_stores():
+async def get_alternative_stores(
+    db: AsyncSession = Depends(get_db)
+):
     """
-    Retorna la lista de tiendas y mercados alternativos monitoreados.
+    Retorna la lista de tiendas y mercados alternativos y mayoristas monitoreados.
     """
-    return RadarService.get_alternative_stores()
+    return await RadarService.get_alternative_stores_async(db=db)
 
 
 @router.get("/kpis")
-async def get_radar_kpis():
+async def get_radar_kpis(
+    db: AsyncSession = Depends(get_db)
+):
     """
-    Retorna los indicadores clave de ahorro (Spread promedio, ahorro máximo y conteos).
+    Retorna los indicadores clave de ahorro (Spread promedio, ahorro máximo y conteos) desde la BD.
     """
-    return RadarService.get_kpis()
+    return await RadarService.get_kpis_async(db=db)
+
