@@ -56,15 +56,15 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             onClick={() => onSelectCategory(cat.slug)}
             className={`flex items-center space-x-2 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 shadow-xs ${
               isSelected
-                ? 'bg-blue-600 text-white shadow-blue-500/20 shadow-md scale-105'
-                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300'
+                ? 'bg-orange-600 text-white shadow-orange-500/25 shadow-md scale-105'
+                : 'bg-white hover:bg-orange-50/70 text-slate-700 border border-slate-200 hover:border-orange-200'
             }`}
           >
-            <span className={isSelected ? 'text-white' : 'text-blue-600'}>{icon}</span>
+            <span className={isSelected ? 'text-white' : 'text-orange-600'}>{icon}</span>
             <span>{cat.name}</span>
             {cat.count !== undefined && (
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                isSelected ? 'bg-blue-700 text-blue-100' : 'bg-slate-100 text-slate-500'
+                isSelected ? 'bg-orange-700 text-orange-100' : 'bg-slate-100 text-slate-500'
               }`}>
                 {cat.count}
               </span>

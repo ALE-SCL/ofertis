@@ -34,9 +34,9 @@ export const RadarProductCard: React.FC<RadarProductCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden group">
+    <div className="bg-white rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-lg hover:border-orange-300 transition-all duration-300 flex flex-col overflow-hidden group">
       {/* Imagen & Tag de Ahorro */}
-      <div className="relative h-44 bg-slate-100 overflow-hidden flex items-center justify-center p-2">
+      <div className="relative h-48 bg-white overflow-hidden flex items-center justify-center p-3 border-b border-stone-100">
         {opportunity.image_url ? (
           <img
             src={opportunity.image_url}
@@ -45,17 +45,17 @@ export const RadarProductCard: React.FC<RadarProductCardProps> = ({
             loading="lazy"
           />
         ) : (
-          <div className="text-slate-400 text-sm font-medium">Sin imagen disponible</div>
+          <div className="text-stone-400 text-sm font-medium">Sin imagen disponible</div>
         )}
 
         {/* Tag de Ahorro Porcentual */}
         <div
-          className={`absolute top-2 right-2 text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center space-x-1 ${
+          className={`absolute top-2.5 right-2.5 text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center space-x-1 ${
             isSuper
-              ? 'bg-gradient-to-r from-emerald-600 to-teal-600'
+              ? 'bg-gradient-to-r from-orange-600 to-amber-500'
               : isAlto
-              ? 'bg-gradient-to-r from-amber-600 to-orange-600'
-              : 'bg-gradient-to-r from-blue-600 to-indigo-600'
+              ? 'bg-gradient-to-r from-amber-600 to-orange-500'
+              : 'bg-gradient-to-r from-stone-700 to-stone-900'
           }`}
         >
           {isSuper ? <Flame className="w-3 h-3" /> : <Tag className="w-3 h-3" />}
@@ -63,8 +63,8 @@ export const RadarProductCard: React.FC<RadarProductCardProps> = ({
         </div>
 
         {/* Categoría en esquina inferior izquierda */}
-        <div className="absolute bottom-2 left-2">
-          <span className="text-[10px] uppercase font-black tracking-wider bg-slate-900/80 backdrop-blur-sm text-white px-2 py-0.5 rounded-md">
+        <div className="absolute bottom-2.5 left-2.5">
+          <span className="text-[10px] uppercase font-bold tracking-wider bg-stone-900/75 backdrop-blur-sm text-white px-2 py-0.5 rounded-md">
             {opportunity.category.replace('_', ' ')}
           </span>
         </div>
@@ -74,28 +74,28 @@ export const RadarProductCard: React.FC<RadarProductCardProps> = ({
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           {/* Fila Tienda y Presentación */}
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-            <span className="font-bold text-slate-700">{opportunity.store_name}</span>
-            <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium text-[10px] border border-slate-200">
+          <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
+            <span className="font-bold text-stone-800">{opportunity.store_name}</span>
+            <span className="bg-stone-100 text-stone-700 px-2 py-0.5 rounded-md font-medium text-[10px] border border-stone-200">
               {opportunity.unit}
             </span>
           </div>
 
           {/* Nombre del Producto */}
-          <h3 className="text-sm sm:text-base font-bold text-slate-900 line-clamp-2 mb-3">
+          <h3 className="text-sm sm:text-base font-bold text-stone-900 line-clamp-2 mb-3 group-hover:text-orange-950 transition-colors">
             {opportunity.product_name}
           </h3>
 
           {/* Precios Normalizados y Comparativa */}
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3">
+          <div className="bg-orange-50/40 rounded-xl p-3 border border-orange-100/70 mb-3">
             <div className="flex items-baseline justify-between">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-800">
                   Precio Alternativo:
                 </span>
-                <div className="text-lg sm:text-xl font-black text-slate-900">
+                <div className="text-lg sm:text-xl font-black text-stone-900">
                   ${Math.round(opportunity.alternative_price).toLocaleString('es-CL')}
-                  <span className="text-xs font-semibold text-slate-500 ml-1">
+                  <span className="text-xs font-semibold text-stone-500 ml-1">
                     / {opportunity.unit}
                   </span>
                 </div>
@@ -103,10 +103,10 @@ export const RadarProductCard: React.FC<RadarProductCardProps> = ({
 
               {opportunity.traditional_benchmark_price > opportunity.alternative_price && (
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 line-through block">
+                  <span className="text-[10px] text-stone-400 line-through block">
                     Retail: ${Math.round(opportunity.traditional_benchmark_price).toLocaleString('es-CL')}
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-bold text-orange-700 bg-orange-100/80 px-1.5 py-0.5 rounded">
                     -{opportunity.savings_percentage}%
                   </span>
                 </div>
@@ -114,34 +114,34 @@ export const RadarProductCard: React.FC<RadarProductCardProps> = ({
             </div>
 
             {/* Canal y ahorro en pesos */}
-            <div className="mt-2 flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
-              <span className="text-slate-500 font-medium">Canal más económico:</span>
+            <div className="mt-2 flex items-center justify-between pt-2 border-t border-orange-100/60 text-xs">
+              <span className="text-stone-500 font-medium">Canal más económico:</span>
               <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] border ${badgeColors.bg} ${badgeColors.text} ${badgeColors.border}`}>
                 {opportunity.store_name.split(' ')[0]}
               </span>
             </div>
 
             <div className="mt-1.5 flex items-center justify-between text-xs pt-1">
-              <span className="text-slate-600 font-semibold">Ahorras en tu compra:</span>
-              <span className="text-emerald-700 font-black">
+              <span className="text-stone-600 font-semibold">Ahorras en tu compra:</span>
+              <span className="text-orange-900 font-black">
                 -${Math.round(opportunity.savings_clp).toLocaleString('es-CL')} CLP
               </span>
             </div>
           </div>
 
           {/* Nota / Recomendación de Compra */}
-          <p className="text-[11px] text-slate-600 italic bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/60 mb-3 line-clamp-2 leading-relaxed">
+          <p className="text-[11px] text-stone-600 italic bg-amber-50/50 p-2.5 rounded-lg border border-amber-100/70 mb-3 line-clamp-2 leading-relaxed">
             "{opportunity.recommendation_note}"
           </p>
         </div>
 
-        {/* Acciones idénticas a ProductCard */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+        {/* Acciones */}
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-stone-100">
           <a
             href={opportunity.purchase_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2 px-3 rounded-xl text-xs transition-all shadow-sm shadow-emerald-500/10 text-center"
+            className="w-full flex items-center justify-center space-x-1.5 bg-orange-600 hover:bg-orange-500 active:scale-95 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition-all shadow-sm shadow-orange-500/20 text-center"
           >
             <span>Ver Tienda</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -150,7 +150,7 @@ export const RadarProductCard: React.FC<RadarProductCardProps> = ({
           <button
             type="button"
             onClick={() => onViewComparison?.(opportunity)}
-            className="w-full flex items-center justify-center space-x-1 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs transition-all text-center"
+            className="w-full flex items-center justify-center space-x-1 bg-white hover:bg-orange-50/80 active:scale-95 text-orange-800 border border-orange-200 hover:border-orange-300 font-bold py-2.5 px-3 rounded-xl text-xs transition-all text-center"
           >
             <span>Comparar</span>
           </button>

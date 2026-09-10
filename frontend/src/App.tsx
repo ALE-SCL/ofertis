@@ -139,26 +139,26 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
       <Navbar onOpenMyAlerts={() => alert('Ingresa tu número en el botón de Alerta WhatsApp de cualquier producto para ver tus alertas.')} />
       <MiningStatsBanner stats={stats} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
         {/* Navigation Tabs: Retail Tradicional vs Radar Alternativo */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-2 sm:p-2.5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-2 sm:p-2.5 rounded-2xl border border-stone-200/80 shadow-xs">
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setActiveTab('retail')}
               className={`flex-1 sm:flex-none flex items-center justify-center space-x-2.5 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
                 activeTab === 'retail'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-orange-600 text-white shadow-md shadow-orange-500/20'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
               }`}
             >
               <Store className="w-4 h-4" />
               <span>Supermercados Retail</span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                activeTab === 'retail' ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-700'
+                activeTab === 'retail' ? 'bg-orange-700 text-orange-100' : 'bg-stone-200 text-stone-700'
               }`}>
                 4 Cadenas
               </span>
@@ -168,19 +168,21 @@ export function App() {
               onClick={() => setActiveTab('radar')}
               className={`flex-1 sm:flex-none flex items-center justify-center space-x-2.5 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
                 activeTab === 'radar'
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-md shadow-orange-500/20'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
               }`}
             >
               <Target className="w-4 h-4" />
               <span>Radar Alternativo</span>
-              <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                activeTab === 'radar' ? 'bg-orange-700 text-white' : 'bg-orange-100 text-orange-800 border border-orange-200'
+              }`}>
                 Hasta 65% Ahorro
               </span>
             </button>
           </div>
 
-          <div className="text-xs text-slate-500 px-3 hidden md:block">
+          <div className="text-xs text-stone-500 px-3 hidden md:block">
             {activeTab === 'retail' 
               ? 'Comparando Jumbo, Lider, Santa Isabel y Unimarc con normalización de unidad.'
               : 'Canales mayoristas, carnicerías directas y ferias con brecha real contra retail.'}
@@ -190,37 +192,37 @@ export function App() {
         {activeTab === 'retail' ? (
           <>
             {/* Hero & Buscador */}
-            <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm relative overflow-hidden">
+            <div className="bg-white rounded-3xl p-6 sm:p-10 border border-orange-100/80 shadow-xs relative overflow-hidden">
               <div className="max-w-3xl">
-                <div className="inline-flex items-center space-x-2 bg-rose-50 text-rose-700 px-3.5 py-1.5 rounded-full text-xs font-bold border border-rose-200 mb-3 shadow-xs">
-                  <HeartHandshake className="w-4 h-4 text-rose-500" />
+                <div className="inline-flex items-center space-x-2 bg-orange-50 text-orange-900 px-3.5 py-1.5 rounded-full text-xs font-bold border border-orange-200/80 mb-3 shadow-xs">
+                  <HeartHandshake className="w-4 h-4 text-orange-600" />
                   <span>Cero engaños: el comparador independiente que defiende tu presupuesto familiar</span>
                 </div>
 
-                <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-                  Que no te cobren de más: encuentra el precio real por kilo y litro en <span className="text-blue-600">Lider</span>, <span className="text-emerald-600">Jumbo</span>, <span className="text-rose-600">Santa Isabel</span> y <span className="text-red-600">Unimarc</span>.
+                <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight leading-tight">
+                  Que no te cobren de más: encuentra el precio real por kilo y litro en <span className="text-blue-600">Lider</span>, <span className="text-orange-600">Jumbo</span>, <span className="text-rose-600">Santa Isabel</span> y <span className="text-red-600">Unimarc</span>.
                 </h1>
 
-                <p className="text-sm sm:text-base text-slate-600 mt-2">
+                <p className="text-sm sm:text-base text-stone-600 mt-2">
                   Estandarizamos todos los envases y formatos al mismo peso y volumen ($/kg y $/litro) para que descubras qué supermercado es más conveniente de verdad y tu plata rinda más a fin de mes.
                 </p>
 
                 {/* Input de Búsqueda */}
                 <form onSubmit={onSearchSubmit} className="mt-6 flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
-                    <Search className="w-5 h-5 text-slate-400 absolute left-4 top-3.5" />
+                    <Search className="w-5 h-5 text-stone-400 absolute left-4 top-3.5" />
                     <input
                       type="text"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       placeholder="¿Qué necesitas comprar hoy? (ej: 'leche colun', 'lomo liso', 'posta negra', 'arroz grado 1', 'aceite', 'fideos')..."
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner"
+                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-stone-50 border border-stone-200 text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white transition-all shadow-inner"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center space-x-2"
+                    className="bg-orange-600 hover:bg-orange-500 active:scale-95 text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm transition-all shadow-md shadow-orange-500/20 flex items-center justify-center space-x-2"
                   >
                     <span>Buscar Mejor Precio</span>
                   </button>
@@ -230,7 +232,7 @@ export function App() {
                     onClick={handleLiveRefresh}
                     disabled={loading}
                     title="Consulta en tiempo real los precios oficiales de Jumbo, Santa Isabel, Unimarc y Lider"
-                    className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold px-5 py-3.5 rounded-2xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-2 disabled:opacity-50"
+                    className="bg-white hover:bg-orange-50 active:scale-95 text-orange-700 border border-orange-200 hover:border-orange-300 font-extrabold px-5 py-3.5 rounded-2xl text-sm transition-all shadow-xs flex items-center justify-center space-x-2 disabled:opacity-50"
                   >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     <span>Comprobar Precios de Hoy</span>
@@ -238,7 +240,7 @@ export function App() {
                 </form>
 
                 {/* Sugerencias rápidas */}
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-stone-500">
                   <span className="font-semibold">Sugerencias:</span>
                   {['Lomo Liso', 'Posta Negra', 'Pechuga Pollo', 'Leche Colun', 'Arroz Tucapel', 'Spaghetti'].map((tag) => (
                     <button
@@ -248,7 +250,7 @@ export function App() {
                         setQuery(tag);
                         handleSearch(tag, selectedCategory);
                       }}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg transition-colors font-medium"
+                      className="bg-stone-100 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent text-stone-700 px-2.5 py-1 rounded-lg transition-all font-medium"
                     >
                       {tag}
                     </button>
@@ -260,8 +262,8 @@ export function App() {
             {/* Filtro por Categorías */}
             {categories.length > 0 && (
               <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  <Filter className="w-3.5 h-3.5 text-blue-600" />
+                <div className="flex items-center space-x-2 text-xs font-bold text-stone-700 uppercase tracking-wider">
+                  <Filter className="w-3.5 h-3.5 text-orange-600" />
                   <span>Filtrar por Categoría de Canasta:</span>
                 </div>
                 <CategoryFilter
@@ -275,20 +277,20 @@ export function App() {
             {/* Grid de Resultados */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center space-x-2">
-                  <ShoppingBag className="w-5 h-5 text-blue-600" />
+                <h2 className="text-base sm:text-lg font-black text-stone-900 flex items-center space-x-2">
+                  <ShoppingBag className="w-5 h-5 text-orange-600" />
                   <span>Resultados Comparados ({products.length})</span>
                 </h2>
-                <span className="text-xs font-semibold text-slate-500">
+                <span className="text-xs font-semibold text-stone-500">
                   Precios calculados por $/kg y $/L
                 </span>
               </div>
 
               {loading ? (
-                <div className="py-20 text-center bg-white rounded-3xl border border-slate-200">
-                  <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                  <p className="text-sm font-bold text-slate-700">Calculando similitud semántica con pgvector...</p>
-                  <p className="text-xs text-slate-500 mt-1">Comparando precios en Jumbo, Lider, Santa Isabel y Unimarc</p>
+                <div className="py-20 text-center bg-white rounded-3xl border border-stone-200">
+                  <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                  <p className="text-sm font-bold text-stone-700">Calculando similitud semántica con pgvector...</p>
+                  <p className="text-xs text-stone-500 mt-1">Comparando precios en Jumbo, Lider, Santa Isabel y Unimarc</p>
                 </div>
               ) : products.length > 0 ? (
                 <>
@@ -308,17 +310,17 @@ export function App() {
                     <button
                       onClick={() => handleSearch(query, selectedCategory, true)}
                       disabled={loadingMore}
-                      className="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold px-7 py-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                      className="inline-flex items-center space-x-2 bg-white hover:bg-orange-50/70 text-stone-800 border border-stone-300 hover:border-orange-300 font-bold px-7 py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                     >
                       {loadingMore ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
                           <span>Cargando más productos...</span>
                         </>
                       ) : (
                         <>
                           <span>Cargar más productos del catálogo</span>
-                          <span className="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full">
+                          <span className="text-xs text-orange-700 font-bold bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full">
                             {products.length} mostrados
                           </span>
                         </>
@@ -328,10 +330,10 @@ export function App() {
                 )}
               </>
               ) : (
-                <div className="py-16 text-center bg-white rounded-3xl border border-slate-200 p-8 space-y-3">
-                  <AlertCircle className="w-12 h-12 text-slate-400 mx-auto" />
-                  <h3 className="text-base font-bold text-slate-800">No encontramos coincidencias directas</h3>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                <div className="py-16 text-center bg-white rounded-3xl border border-stone-200 p-8 space-y-3">
+                  <AlertCircle className="w-12 h-12 text-stone-400 mx-auto" />
+                  <h3 className="text-base font-bold text-stone-800">No encontramos coincidencias directas</h3>
+                  <p className="text-xs text-stone-500 max-w-md mx-auto">
                     Prueba buscando por términos generales como "carne", "leche", "arroz" o cambiando el filtro de categoría.
                   </p>
                 </div>
@@ -368,7 +370,7 @@ export function App() {
       />
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-12">
+      <footer className="bg-white border-t border-stone-200 py-6 text-center text-xs text-stone-500 mt-12">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>🇨🇱 <strong>Ofertis Chile</strong> - Plataforma de Minería de Datos & Agentes IA</span>
           <span>PostgreSQL + pgvector • FastAPI • React + Vite</span>
