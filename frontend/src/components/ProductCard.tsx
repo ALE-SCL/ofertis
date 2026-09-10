@@ -27,7 +27,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const badgeClass = SUPERMARKET_BADGE_STYLE[product.best_supermarket_slug] || 'bg-slate-100 text-slate-800 border-slate-200';
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-lg hover:border-orange-300 transition-all duration-300 flex flex-col overflow-hidden group">
+    <div
+      id={`product-${product.id}`}
+      className="bg-white rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-lg hover:border-orange-300 transition-all duration-300 flex flex-col overflow-hidden group scroll-mt-24"
+    >
       {/* Imagen & Tag de Ahorro */}
       <div className="relative h-48 bg-white overflow-hidden flex items-center justify-center p-3 border-b border-stone-100">
         {product.image_url ? (

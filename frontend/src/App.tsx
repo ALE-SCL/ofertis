@@ -263,7 +263,6 @@ export function App() {
             <TopDealsCarousel
               products={products}
               onViewComparison={(id) => setSelectedCanonicalId(id)}
-              onSetAlert={handleOpenAlert}
             />
 
             {/* Filtro por Categorías */}
