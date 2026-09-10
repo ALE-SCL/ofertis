@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShoppingCart, Bell, Activity } from 'lucide-react';
+import { Bell, Activity } from 'lucide-react';
+import logoImg from '../assets/logo_ofertis.jpg';
 
 interface NavbarProps {
   onOpenMyAlerts: () => void;
@@ -9,16 +10,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMyAlerts }) => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-orange-100 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Logo & Marca */}
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20">
-            <ShoppingCart className="w-5 h-5" />
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
-              Ofert<span className="text-orange-600">is</span>
-            </span>
-          </div>
+        {/* Logo & Marca Oficial */}
+        <div 
+          className="flex items-center space-x-3 cursor-pointer group"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          title="Ofertis - Ir al inicio"
+        >
+          <img
+            src={logoImg}
+            alt="Ofertis - El buscador de ofertas que alimenta tu ahorro"
+            className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+          />
         </div>
 
         {/* Supermercados monitoreados & Botón de Alertas */}

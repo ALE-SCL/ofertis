@@ -11,6 +11,7 @@ import { AlertModal } from './components/AlertModal';
 import { RadarAlternativoView } from './components/RadarAlternativoView';
 import { ProductSearchResult, CategoryItem, MiningStats } from './types';
 import { Target, Store } from 'lucide-react';
+import logoImg from './assets/logo_ofertis.jpg';
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 
@@ -377,8 +378,11 @@ export function App() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-stone-200 py-6 text-center text-xs text-stone-500 mt-12">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>🇨🇱 <strong>Ofertis Chile</strong> - Plataforma de Minería de Datos & Agentes IA</span>
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <img src={logoImg} alt="Ofertis" className="h-8 w-auto object-contain" />
+            <span className="text-stone-600 font-medium">El buscador de ofertas que alimenta tu ahorro</span>
+          </div>
           <span>PostgreSQL + pgvector • FastAPI • React + Vite</span>
         </div>
       </footer>
