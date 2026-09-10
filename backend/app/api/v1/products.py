@@ -14,34 +14,30 @@ router = APIRouter(prefix="/products", tags=["Products & Price Comparison"])
 
 
 @router.get("/categories")
-async def get_categories():
+async def get_categories(
+    db: AsyncSession = Depends(get_db)
+):
     """
-    Retorna las categorías de canasta básica monitoreadas.
+    Retorna dinámicamente las categorías monitoreadas con stock real en góndola y su conteo de productos.
     """
-    return [
-        {"slug": "todos", "name": "Todos los Productos", "icon": "LayoutGrid"},
-        {"slug": "carne_vacuno", "name": "Carnes de Vacuno (NCh 1424)", "icon": "Beef"},
-        {"slug": "carne_cerdo", "name": "Carnes de Cerdo", "icon": "Ham"},
-        {"slug": "carne_pollo", "name": "Pollo y Pavo", "icon": "Drumstick"},
-        {"slug": "leche", "name": "Leches y Lácteos", "icon": "Milk"},
-        {"slug": "arroz", "name": "Arroz", "icon": "Wheat"},
-        {"slug": "fideos", "name": "Fideos y Pastas", "icon": "Utensils"},
-    ]
+    service = ProductService(db)
+    return await service.get_categories_with_counts()
 
 
 @router.get("/search", response_model=List[ProductSearchResult])
 async def search_products(
-    q: str = Query(..., min_length=2, description="Texto de búsqueda semántica (ej: 'lomo liso', 'posta', 'arroz grado 1', 'leche descremada')"),
+    q: Optional[str] = Query(None, description="Texto de búsqueda semántica (ej: 'lomo liso', 'queso chanco', 'aceite', 'leche')"),
     category: Optional[str] = Query(None, description="Filtro opcional por categoría"),
-    limit: int = Query(20, ge=1, le=50),
+    limit: int = Query(24, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Búsqueda semántica vectorial de productos de primera necesidad.
-    Usa pgvector para encontrar equivalencias sin importar cómo lo nombre cada supermercado.
+    Búsqueda híbrida y exploración del catálogo completo de retail chileno.
+    Si no se especifica 'q', retorna el catálogo completo (o filtrado por categoría) ordenado por disponibilidad.
     """
     service = ProductService(db)
-    return await service.search_products(query=q, category=category, limit=limit)
+    return await service.search_products(query=q, category=category, limit=limit, offset=offset)
 
 
 @router.get("/{canonical_id}", response_model=CanonicalProductDetail)

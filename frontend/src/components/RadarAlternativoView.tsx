@@ -23,15 +23,16 @@ export function RadarAlternativoView() {
   const [stores, setStores] = useState<AlternativeStore[]>([]);
   const [kpis, setKpis] = useState<RadarKPIs | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('todos');
+  const [selectedStore, setSelectedStore] = useState<string>('todas');
   const [query, setQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedComparisonOpp, setSelectedComparisonOpp] = useState<PriceOpportunity | null>(null);
 
-  const loadData = async (cat: string, searchTerm: string) => {
+  const loadData = async (cat: string, searchTerm: string, storeSlug: string = selectedStore) => {
     setLoading(true);
     try {
       const [oppsData, storesData, kpisData] = await Promise.all([
-        radarService.getOpportunities(cat, searchTerm),
+        radarService.getOpportunities(cat, searchTerm, storeSlug),
         radarService.getStores(),
         radarService.getKpis()
       ]);
@@ -46,17 +47,17 @@ export function RadarAlternativoView() {
   };
 
   useEffect(() => {
-    loadData(selectedCategory, query);
-  }, [selectedCategory]);
+    loadData(selectedCategory, query, selectedStore);
+  }, [selectedCategory, selectedStore]);
 
   const onSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadData(selectedCategory, query);
+    loadData(selectedCategory, query, selectedStore);
   };
 
   const handleSuggestionClick = (term: string) => {
     setQuery(term);
-    loadData(selectedCategory, term);
+    loadData(selectedCategory, term, selectedStore);
   };
 
   const categories = [
@@ -179,6 +180,39 @@ export function RadarAlternativoView() {
           </div>
         </div>
       )}
+
+      {/* Filtro por Tienda / Cadena Mayorista */}
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 uppercase tracking-wider">
+          <Store className="w-3.5 h-3.5 text-blue-600" />
+          <span>Filtrar por Cadena / Distribuidor:</span>
+        </div>
+        <div className="flex items-center space-x-2 overflow-x-auto py-1 px-0.5 custom-scrollbar">
+          <button
+            onClick={() => setSelectedStore('todas')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-xs ${
+              selectedStore === 'todas'
+                ? 'bg-slate-900 text-white shadow-sm scale-105'
+                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+            }`}
+          >
+            Todas las Cadenas ({stores.length || 12})
+          </button>
+          {stores.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setSelectedStore(s.id)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-xs ${
+                selectedStore === s.id
+                  ? 'bg-emerald-600 text-white shadow-sm scale-105'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+              }`}
+            >
+              {s.name.split('(')[0].trim()}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Filtro por Categorías de Canales */}
       <div className="space-y-2">

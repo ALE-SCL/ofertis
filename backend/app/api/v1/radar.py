@@ -11,6 +11,7 @@ router = APIRouter(prefix="/radar", tags=["Radar Alternativo & Canales de Ahorro
 @router.get("/opportunities")
 async def get_radar_opportunities(
     category: Optional[str] = Query(None, description="Filtro opcional: 'carnes', 'despensa', 'frutas_verduras', 'lacteos_huevos'"),
+    store: Optional[str] = Query(None, description="Filtro opcional por slug de tienda: 'alvi', 'central_mayorista', 'dona_carne', 'el_carnicero', 'comercial_castro', 'lo_valledor', 'acuenta', etc."),
     q: Optional[str] = Query(None, description="Búsqueda por texto (corte, producto o tienda)"),
     db: AsyncSession = Depends(get_db)
 ):
@@ -19,7 +20,7 @@ async def get_radar_opportunities(
     (Doña Carne, El Carnicero, Alvi, Central Mayorista, SuperBodega aCuenta, Lo Valledor, etc.)
     persistidas en PostgreSQL con cálculo dinámico del spread frente al retail tradicional.
     """
-    return await RadarService.get_opportunities_async(db=db, category=category, q=q)
+    return await RadarService.get_opportunities_async(db=db, category=category, q=q, store=store)
 
 
 @router.get("/stores")

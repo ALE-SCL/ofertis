@@ -67,19 +67,46 @@ class EntityResolutionAgent(BaseAgent):
             )
         else:
             # Crear nueva entidad canónica e indexar su vector
-            if item.canonical_subcategory and item.canonical_subcategory.lower() not in ["otros", "general"]:
+            raw_title = item.store_title.strip()
+            if item.canonical_subcategory and item.canonical_subcategory.lower() not in ["otros", "general", "none"]:
                 canonical_name = f"{item.brand or ''} {item.canonical_subcategory}".strip().title()
-            elif item.canonical_category and item.canonical_category.lower() not in ["otros", "generica"]:
+            elif item.canonical_category and item.canonical_category.lower() not in ["otros", "generica", "general"]:
                 canonical_name = f"{item.brand or ''} {item.canonical_category}".strip().title()
             else:
-                canonical_name = item.store_title.strip()
+                canonical_name = raw_title
 
-            if not canonical_name or canonical_name.lower().endswith(" otros") or canonical_name.lower() == "otros":
-                canonical_name = item.store_title.strip()
+            if not canonical_name or "otros" in canonical_name.lower():
+                canonical_name = raw_title
+
+            cat = item.canonical_category
+            if not cat or cat.lower() in ["otros", "general", "generica"]:
+                tl = raw_title.lower()
+                if any(w in tl for w in ["queso", "yogurt", "leche", "crema", "mantequilla"]):
+                    cat = "lacteos"
+                elif any(w in tl for w in ["carne", "lomo", "posta", "asiento", "vacuno"]):
+                    cat = "carne_vacuno"
+                elif any(w in tl for w in ["pollo", "pechuga", "trutro", "pavo"]):
+                    cat = "carne_pollo"
+                elif any(w in tl for w in ["cerdo", "costillar", "pulpa", "chuleta"]):
+                    cat = "carne_cerdo"
+                elif any(w in tl for w in ["arroz"]):
+                    cat = "arroz"
+                elif any(w in tl for w in ["fideo", "spaghetti", "tallarin", "pasta"]):
+                    cat = "fideos"
+                elif any(w in tl for w in ["coca-cola", "pepsi", "bebida", "jugo", "agua", "vino", "cerveza", "pisco"]):
+                    cat = "bebidas"
+                elif any(w in tl for w in ["detergente", "cloro", "lavaloza", "papel higienico", "confort", "limpiador"]):
+                    cat = "limpieza"
+                elif any(w in tl for w in ["papa", "tomate", "cebolla", "fruta", "verdura"]):
+                    cat = "frutas_verduras"
+                elif any(w in tl for w in ["pan", "marraqueta", "hallulla"]):
+                    cat = "panaderia"
+                else:
+                    cat = "despensa"
 
             new_canonical = CanonicalProduct(
                 name=canonical_name,
-                category=item.canonical_category,
+                category=cat,
                 subcategory=item.canonical_subcategory,
                 brand=item.brand,
                 standard_unit=item.standard_unit,

@@ -966,7 +966,8 @@ class RadarService:
         cls,
         db: AsyncSession,
         category: Optional[str] = None,
-        q: Optional[str] = None
+        q: Optional[str] = None,
+        store: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Retorna oportunidades de ahorro persistidas en PostgreSQL (alternative_items)
@@ -981,6 +982,9 @@ class RadarService:
 
             if category and category != "todos":
                 stmt = stmt.where(AlternativeItem.category == category)
+
+            if store and store != "todas":
+                stmt = stmt.where(AlternativeStore.slug == store)
 
             search_term = q.strip() if q and q.strip() else None
             query_vector = None
@@ -1017,9 +1021,10 @@ class RadarService:
                     else 0.0
                 )
 
-                # Ponderación híbrida: coincidencia exacta de frase (+3.0) + tokens (+1.5) + semántica (+1.0) + ahorro
+                prefix_like = f"{clean_q}%"
                 relevance_score = (
                     case(
+                        (func.lower(AlternativeItem.product_name).like(prefix_like), 4.5),
                         (func.lower(AlternativeItem.product_name).like(phrase_like), 3.0),
                         (text_match_filter if text_match_filter is not None else False, 1.5),
                         else_=0.0
@@ -1039,15 +1044,15 @@ class RadarService:
                 else:
                     stmt = stmt.where(cosine_sim >= 0.70)
 
-                stmt = stmt.order_by(desc("relevance"))
+                stmt = stmt.order_by(desc(relevance_score))
             else:
                 stmt = stmt.order_by(desc(AlternativeItem.savings_percentage))
 
             res = await db.execute(stmt)
             rows = res.all()
 
-            if not rows:
-                # Fallback al catálogo estático si no hay filas persistidas
+            if not rows and not search_term and category in ["todos", None] and store in ["todas", None]:
+                # Fallback al catálogo estático solo si la base de datos está completamente vacía
                 return cls.get_opportunities(category=category, q=q)
 
             results: List[Dict[str, Any]] = []

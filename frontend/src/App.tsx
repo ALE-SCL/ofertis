@@ -15,12 +15,15 @@ const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'retail' | 'radar'>('retail');
-  const [query, setQuery] = useState('lomo');
+  const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [products, setProducts] = useState<ProductSearchResult[]>([]);
   const [stats, setStats] = useState<MiningStats | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   // Estados de Modales
   const [selectedCanonicalId, setSelectedCanonicalId] = useState<number | null>(null);
@@ -54,26 +57,40 @@ export function App() {
     fetchInitialMetadata();
   }, []);
 
-  // Ejecutar búsqueda semántica con pgvector
-  const handleSearch = async (searchTerm: string, catSlug: string) => {
-    if (!searchTerm.trim() && catSlug === 'todos') {
-      searchTerm = 'leche'; // término inicial
+  // Ejecutar búsqueda o exploración del catálogo con paginación
+  const handleSearch = async (searchTerm: string, catSlug: string, isAppend: boolean = false) => {
+    if (isAppend) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
     }
 
-    setLoading(true);
+    const currentOffset = isAppend ? offset + 24 : 0;
+
     try {
       const res = await axios.get(`${API_BASE_URL}/products/search`, {
         params: {
-          q: searchTerm.trim() || 'leche',
+          q: searchTerm.trim() || undefined,
           category: catSlug !== 'todos' ? catSlug : undefined,
-          limit: 20
+          limit: 24,
+          offset: currentOffset
         }
       });
-      setProducts(res.data);
+
+      if (isAppend) {
+        setProducts((prev) => [...prev, ...res.data]);
+        setOffset(currentOffset);
+      } else {
+        setProducts(res.data);
+        setOffset(0);
+      }
+
+      setHasMore(res.data.length === 24);
     } catch (err) {
       console.error('Error buscando productos:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -90,6 +107,7 @@ export function App() {
         }
       });
       setProducts(res.data);
+      setHasMore(false);
       // Actualizar estadísticas del banner
       const statRes = await axios.get(`${API_BASE_URL}/mining/stats`);
       setStats(statRes.data);
@@ -273,7 +291,8 @@ export function App() {
                   <p className="text-xs text-slate-500 mt-1">Comparando precios en Jumbo, Lider, Santa Isabel y Unimarc</p>
                 </div>
               ) : products.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {products.map((product) => (
                     <ProductCard
                       key={product.id}
@@ -283,6 +302,31 @@ export function App() {
                     />
                   ))}
                 </div>
+
+                {hasMore && (
+                  <div className="text-center pt-8 pb-4">
+                    <button
+                      onClick={() => handleSearch(query, selectedCategory, true)}
+                      disabled={loadingMore}
+                      className="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold px-7 py-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Cargando más productos...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Cargar más productos del catálogo</span>
+                          <span className="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full">
+                            {products.length} mostrados
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </>
               ) : (
                 <div className="py-16 text-center bg-white rounded-3xl border border-slate-200 p-8 space-y-3">
                   <AlertCircle className="w-12 h-12 text-slate-400 mx-auto" />

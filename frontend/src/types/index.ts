@@ -51,6 +51,7 @@ export interface CategoryItem {
   slug: string;
   name: string;
   icon: string;
+  count?: number;
 }
 
 export interface MiningStats {

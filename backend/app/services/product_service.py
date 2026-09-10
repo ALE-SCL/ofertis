@@ -23,82 +23,108 @@ class ProductService:
 
     async def search_products(
         self,
-        query: str,
+        query: Optional[str] = None,
         category: Optional[str] = None,
-        limit: int = 20
+        limit: int = 24,
+        offset: int = 0
     ) -> List[ProductSearchResult]:
         """
-        Búsqueda híbrida de alta precisión: combina coincidencia textual ponderada
-        (en títulos canónicos, marcas y títulos de SKUs en tiendas) con similitud
-        semántica vectorial (pgvector) y filtrado estricto de relevancia.
+        Búsqueda de alta precisión en el catálogo completo:
+        - Si se ingresa texto: combina coincidencia de tokens y frase con similitud semántica (pgvector).
+        - Si query es None o vacío: lista los productos del catálogo (o categoría) ordenados por disponibilidad.
+        - Filtra a nivel SQL para que NUNCA aparezcan productos sin stock o sin registros de precio.
         """
-        clean_q = query.strip()
-        if not clean_q:
-            return []
+        clean_q = query.strip() if query else ""
 
-        # Generar vector semántico para el término de búsqueda
-        query_vector = VectorService.generate_embedding(clean_q)
-
-        # Tokens significativos para búsqueda textual
-        tokens = [t.lower() for t in re.split(r"[\s,\-\+]+", clean_q) if len(t) >= 2]
-
-        token_conditions = []
-        for t in tokens:
-            t_like = f"%{t}%"
-            token_conditions.append(
-                or_(
-                    func.lower(CanonicalProduct.name).like(t_like),
-                    func.lower(CanonicalProduct.brand).like(t_like),
-                    func.lower(CanonicalProduct.description).like(t_like),
-                    func.lower(CanonicalProduct.category).like(t_like),
-                    func.lower(CanonicalProduct.subcategory).like(t_like),
-                    CanonicalProduct.items.any(func.lower(SupermarketItem.store_title).like(t_like))
-                )
-            )
-
-        text_match_filter = or_(*token_conditions) if token_conditions else None
-        cosine_sim = (1 - CanonicalProduct.embedding.cosine_distance(query_vector)).label("similarity")
-
-        phrase_like = f"%{clean_q.lower()}%"
-        relevance_score = (
-            case(
-                (func.lower(CanonicalProduct.name).like(phrase_like), 3.0),
-                (CanonicalProduct.items.any(func.lower(SupermarketItem.store_title).like(phrase_like)), 2.5),
-                (text_match_filter if text_match_filter is not None else False, 1.5),
-                else_=0.0
-            ) + cosine_sim
-        ).label("relevance")
-
-        stmt = (
-            select(
-                CanonicalProduct,
-                cosine_sim,
-                relevance_score
-            )
-            .options(
-                selectinload(CanonicalProduct.items).selectinload(SupermarketItem.supermarket),
-                selectinload(CanonicalProduct.items).selectinload(SupermarketItem.price_records)
-            )
+        # Filtro base: el producto canónico DEBE tener al menos un SKU de tienda con precio registrado
+        base_filter = CanonicalProduct.items.any(
+            SupermarketItem.price_records.any()
         )
 
-        # Filtro de relevancia estricto: exige coincidencia textual O similitud semántica alta (>= 0.70)
-        if text_match_filter is not None:
-            stmt = stmt.where(
-                or_(
-                    text_match_filter,
-                    cosine_sim >= 0.70
+        if not clean_q:
+            stmt = (
+                select(CanonicalProduct)
+                .options(
+                    selectinload(CanonicalProduct.items).selectinload(SupermarketItem.supermarket),
+                    selectinload(CanonicalProduct.items).selectinload(SupermarketItem.price_records)
                 )
+                .where(base_filter)
             )
+
+            if category and category != "todos":
+                stmt = stmt.where(CanonicalProduct.category == category)
+
+            # Ordenar por ID descendente para mostrar variedad reciente
+            stmt = stmt.order_by(desc(CanonicalProduct.id)).offset(offset).limit(limit)
+            result = await self.db.execute(stmt)
+            rows = [(cp, 1.0, 1.0) for cp in result.scalars().all()]
         else:
-            stmt = stmt.where(cosine_sim >= 0.70)
+            # Generar vector semántico para el término de búsqueda
+            query_vector = VectorService.generate_embedding(clean_q)
 
-        if category and category != "todos":
-            stmt = stmt.where(CanonicalProduct.category == category)
+            # Tokens significativos para búsqueda textual
+            tokens = [t.lower() for t in re.split(r"[\s,\-\+]+", clean_q) if len(t) >= 2]
 
-        # Ordenar por relevancia híbrida descendente
-        stmt = stmt.order_by(desc("relevance")).limit(limit)
-        result = await self.db.execute(stmt)
-        rows = result.all()
+            token_conditions = []
+            for t in tokens:
+                t_like = f"%{t}%"
+                token_conditions.append(
+                    or_(
+                        func.lower(CanonicalProduct.name).like(t_like),
+                        func.lower(CanonicalProduct.brand).like(t_like),
+                        func.lower(CanonicalProduct.description).like(t_like),
+                        func.lower(CanonicalProduct.category).like(t_like),
+                        func.lower(CanonicalProduct.subcategory).like(t_like),
+                        CanonicalProduct.items.any(func.lower(SupermarketItem.store_title).like(t_like))
+                    )
+                )
+
+            text_match_filter = or_(*token_conditions) if token_conditions else None
+            cosine_sim = (1 - CanonicalProduct.embedding.cosine_distance(query_vector)).label("similarity")
+
+            phrase_like = f"%{clean_q.lower()}%"
+            prefix_like = f"{clean_q.lower()}%"
+            relevance_score = (
+                case(
+                    (func.lower(CanonicalProduct.name).like(prefix_like), 4.5),
+                    (func.lower(CanonicalProduct.name).like(phrase_like), 3.0),
+                    (CanonicalProduct.items.any(func.lower(SupermarketItem.store_title).like(prefix_like)), 3.5),
+                    (CanonicalProduct.items.any(func.lower(SupermarketItem.store_title).like(phrase_like)), 2.5),
+                    (text_match_filter if text_match_filter is not None else False, 1.5),
+                    else_=0.0
+                ) + cosine_sim
+            ).label("relevance")
+
+            stmt = (
+                select(
+                    CanonicalProduct,
+                    cosine_sim,
+                    relevance_score
+                )
+                .options(
+                    selectinload(CanonicalProduct.items).selectinload(SupermarketItem.supermarket),
+                    selectinload(CanonicalProduct.items).selectinload(SupermarketItem.price_records)
+                )
+                .where(base_filter)
+            )
+
+            # Filtro de relevancia estricto: coincidencia textual O similitud semántica alta (>= 0.70)
+            if text_match_filter is not None:
+                stmt = stmt.where(
+                    or_(
+                        text_match_filter,
+                        cosine_sim >= 0.70
+                    )
+                )
+            else:
+                stmt = stmt.where(cosine_sim >= 0.70)
+
+            if category and category != "todos":
+                stmt = stmt.where(CanonicalProduct.category == category)
+
+            stmt = stmt.order_by(desc(relevance_score)).offset(offset).limit(limit)
+            result = await self.db.execute(stmt)
+            rows = result.all()
 
         results: List[ProductSearchResult] = []
         for canonical, similarity, relevance in rows:
@@ -253,3 +279,65 @@ class ProductService:
                 "supermarket_slug": r.supermarket_slug
             })
         return history
+
+    async def get_categories_with_counts(self) -> List[Dict[str, Any]]:
+        """
+        Retorna la lista de categorías dinámicas de la base de datos que contienen
+        productos con stock y precios en góndola, junto con sus conteos reales.
+        """
+        CATEGORY_METADATA = {
+            "despensa": {"name": "Abarrotes y Despensa", "icon": "ShoppingBag"},
+            "bebidas": {"name": "Bebidas, Jugos y Licores", "icon": "Coffee"},
+            "lacteos": {"name": "Lácteos y Quesos", "icon": "Milk"},
+            "carne_vacuno": {"name": "Carnes de Vacuno (NCh 1424)", "icon": "Beef"},
+            "frutas_verduras": {"name": "Frutas y Verduras", "icon": "Layers"},
+            "leche": {"name": "Leches", "icon": "Milk"},
+            "limpieza": {"name": "Limpieza y Aseo", "icon": "Sparkles"},
+            "carne_pollo": {"name": "Pollo y Pavo", "icon": "Drumstick"},
+            "panaderia": {"name": "Panadería y Masas", "icon": "ShoppingBag"},
+            "fideos": {"name": "Fideos y Pastas", "icon": "Utensils"},
+            "cuidado_personal": {"name": "Cuidado Personal", "icon": "Heart"},
+            "arroz": {"name": "Arroz", "icon": "Wheat"},
+            "fiambreria": {"name": "Fiambrería y Cecinas", "icon": "Ham"},
+            "carne_cerdo": {"name": "Carnes de Cerdo", "icon": "Ham"},
+            "congelados": {"name": "Congelados", "icon": "Flame"},
+            "mascotas": {"name": "Mascotas", "icon": "Tag"},
+        }
+
+        stmt = (
+            select(
+                CanonicalProduct.category,
+                func.count(CanonicalProduct.id.distinct()).label("total_products")
+            )
+            .where(CanonicalProduct.items.any(SupermarketItem.price_records.any()))
+            .group_by(CanonicalProduct.category)
+            .order_by(desc("total_products"))
+        )
+        res = await self.db.execute(stmt)
+        rows = res.all()
+
+        total_all = sum(r.total_products for r in rows)
+        categories = [
+            {
+                "slug": "todos",
+                "name": "Todos los Productos",
+                "icon": "LayoutGrid",
+                "count": total_all
+            }
+        ]
+
+        for cat_slug, count in rows:
+            if cat_slug == "otros" and count < 10:
+                continue
+            meta = CATEGORY_METADATA.get(cat_slug, {
+                "name": cat_slug.replace("_", " ").title(),
+                "icon": "ShoppingBag"
+            })
+            categories.append({
+                "slug": cat_slug,
+                "name": meta["name"],
+                "icon": meta["icon"],
+                "count": count
+            })
+
+        return categories
