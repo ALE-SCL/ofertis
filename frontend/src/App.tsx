@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { MiningStatsBanner } from './components/MiningStatsBanner';
 import { CategoryFilter } from './components/CategoryFilter';
 import { ProductCard } from './components/ProductCard';
+import { TopDealsCarousel } from './components/TopDealsCarousel';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { AlertModal } from './components/AlertModal';
 import { RadarAlternativoView } from './components/RadarAlternativoView';
@@ -65,14 +66,14 @@ export function App() {
       setLoading(true);
     }
 
-    const currentOffset = isAppend ? offset + 24 : 0;
+    const currentOffset = isAppend ? offset + 36 : 0;
 
     try {
       const res = await axios.get(`${API_BASE_URL}/products/search`, {
         params: {
           q: searchTerm.trim() || undefined,
           category: catSlug !== 'todos' ? catSlug : undefined,
-          limit: 24,
+          limit: 36,
           offset: currentOffset
         }
       });
@@ -85,7 +86,7 @@ export function App() {
         setOffset(0);
       }
 
-      setHasMore(res.data.length === 24);
+      setHasMore(res.data.length === 36);
     } catch (err) {
       console.error('Error buscando productos:', err);
     } finally {
@@ -257,6 +258,13 @@ export function App() {
                 </div>
               </div>
             </div>
+
+            {/* Carrusel con Mejores Ofertas y Mayor Porcentaje de Descuento */}
+            <TopDealsCarousel
+              products={products}
+              onViewComparison={(id) => setSelectedCanonicalId(id)}
+              onSetAlert={handleOpenAlert}
+            />
 
             {/* Filtro por Categorías */}
             {categories.length > 0 && (
