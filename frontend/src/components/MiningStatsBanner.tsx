@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Coins, TrendingDown } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { MiningStats } from '../types';
 
 interface MiningStatsBannerProps {
@@ -29,14 +29,6 @@ export const MiningStatsBanner: React.FC<MiningStatsBannerProps> = ({ stats }) =
 
         <div className="flex items-center space-x-4 text-slate-600 font-medium">
           <div className="flex items-center space-x-1.5">
-            <Coins className="w-3.5 h-3.5 text-orange-600" />
-            <span>Precios justos por <strong className="text-slate-800">kilo y litro</strong></span>
-          </div>
-          <div className="hidden sm:flex items-center space-x-1.5">
-            <TrendingDown className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Ahorro real <strong className="text-slate-800">sin publicidad pagada</strong></span>
-          </div>
-          <div className="hidden md:flex items-center space-x-1.5">
             <MapPin className="w-3.5 h-3.5 text-orange-600" />
             <span>Cobertura <strong className="text-slate-800">Santiago y Regiones</strong></span>
           </div>

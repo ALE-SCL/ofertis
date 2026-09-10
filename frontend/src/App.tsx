@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, AlertCircle, ShoppingBag, RefreshCw, HeartHandshake } from 'lucide-react';
+import { Search, Filter, AlertCircle, ShoppingBag, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { Navbar } from './components/Navbar';
 import { MiningStatsBanner } from './components/MiningStatsBanner';
@@ -195,16 +195,15 @@ export function App() {
             <div className="bg-white rounded-3xl p-6 sm:p-10 border border-orange-100/80 shadow-xs relative overflow-hidden">
               <div className="max-w-3xl">
                 <div className="inline-flex items-center space-x-2 bg-orange-50 text-orange-900 px-3.5 py-1.5 rounded-full text-xs font-bold border border-orange-200/80 mb-3 shadow-xs">
-                  <HeartHandshake className="w-4 h-4 text-orange-600" />
-                  <span>Cero engaños: el comparador independiente que defiende tu presupuesto familiar</span>
+                  <span>Comparador de Precios de Supermercados en Chile</span>
                 </div>
 
                 <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight leading-tight">
-                  Que no te cobren de más: encuentra el precio real por kilo y litro en <span className="text-blue-600">Lider</span>, <span className="text-orange-600">Jumbo</span>, <span className="text-rose-600">Santa Isabel</span> y <span className="text-red-600">Unimarc</span>.
+                  Compara precios en tiempo real en <span className="text-blue-600">Lider</span>, <span className="text-orange-600">Jumbo</span>, <span className="text-rose-600">Santa Isabel</span> y <span className="text-red-600">Unimarc</span>.
                 </h1>
 
                 <p className="text-sm sm:text-base text-stone-600 mt-2">
-                  Estandarizamos todos los envases y formatos al mismo peso y volumen ($/kg y $/litro) para que descubras qué supermercado es más conveniente de verdad y tu plata rinda más a fin de mes.
+                  Estandarizamos todos los envases y formatos al mismo peso y volumen ($/kg y $/litro) para que encuentres la opción más conveniente para tus compras.
                 </p>
 
                 {/* Input de Búsqueda */}

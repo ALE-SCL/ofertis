@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, Bell, Activity, HeartHandshake } from 'lucide-react';
+import { ShoppingCart, Bell, Activity } from 'lucide-react';
 
 interface NavbarProps {
   onOpenMyAlerts: () => void;
@@ -14,19 +14,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMyAlerts }) => {
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20">
             <ShoppingCart className="w-5 h-5" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xl font-black tracking-tight text-slate-900">
-                Ofert<span className="text-orange-600">is</span>
-              </span>
-              <span className="text-xs bg-orange-50 text-orange-800 font-bold px-2.5 py-0.5 rounded-full border border-orange-200 flex items-center space-x-1 shadow-2xs">
-                <HeartHandshake className="w-3.5 h-3.5 text-orange-600" />
-                <span>Cuidamos tu Bolsillo 🇨🇱</span>
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 hidden sm:block font-medium">
-              Precios transparentes por kilo y litro para que el sueldo rinda más
-            </p>
+          <div className="flex items-center space-x-2">
+            <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+              Ofert<span className="text-orange-600">is</span>
+            </span>
           </div>
         </div>
 

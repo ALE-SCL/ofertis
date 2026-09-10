@@ -75,7 +75,7 @@ export function RadarAlternativoView() {
         <div className="max-w-3xl">
           <div className="inline-flex items-center space-x-2 bg-orange-50 text-orange-900 px-3.5 py-1.5 rounded-full text-xs font-bold border border-orange-200/80 mb-3 shadow-xs">
             <Coins className="w-3.5 h-3.5 text-orange-600" />
-            <span>Los secretos del ahorro: compra directa a mayoristas, carnicerías y ferias</span>
+            <span>Canales alternativos y distribuidores mayoristas</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight leading-tight">
