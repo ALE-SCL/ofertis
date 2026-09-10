@@ -388,7 +388,7 @@ export function App() {
       <footer className="bg-white border-t border-stone-200 py-6 text-center text-xs text-stone-500 mt-12">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
-            <img src={logoImg} alt="Ofertis" className="h-8 w-auto object-contain" />
+            <img src={logoImg} alt="Ofertis" className="h-14 w-auto object-contain" />
             <span className="text-stone-600 font-medium">El buscador de ofertas que alimenta tu ahorro</span>
           </div>
           <span>PostgreSQL + pgvector • FastAPI • React + Vite</span>
