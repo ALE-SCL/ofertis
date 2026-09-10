@@ -43,14 +43,15 @@ async def search_products(
 @router.get("/{canonical_id}", response_model=CanonicalProductDetail)
 async def get_product_detail(
     canonical_id: int,
+    format: Optional[str] = Query(None, description="Formato específico a comparar (ej: '250 g', '1 kg', '12 un')"),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Obtiene la ficha comparativa del producto entre Jumbo, Santa Isabel, Unimarc y Lider,
-    calculando la mejor opción y precio normalizado por kg o L.
+    Obtiene la ficha comparativa del producto entre Jumbo, Santa Isabel, Unimarc y Lider para un formato específico,
+    destacando la tienda con 'Precio más barato' y el ahorro real en dinero.
     """
     service = ProductService(db)
-    detail = await service.get_product_detail(canonical_id)
+    detail = await service.get_product_detail(canonical_id, format=format)
     if not detail:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return detail

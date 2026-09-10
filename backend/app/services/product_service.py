@@ -17,6 +17,52 @@ from app.schemas.product import (
 from app.services.vector_service import VectorService
 
 
+def extract_clean_format(quantity: Any, unit: str, title: str) -> str:
+    """
+    Extrae un formato estándar legible para consumidores chilenos (ej: '250 g', '100 g', '500 cc', '12 un', '1 kg').
+    """
+    match = re.search(r'(\d+(?:[.,]\d+)?)\s*(kg|kilos?|g|gr|grs?|gramos?|l|lt|lts?|litros?|cc|ml|un|unid(?:ades?)?)\b', title, re.IGNORECASE)
+    if match:
+        val_str = match.group(1).replace(',', '.')
+        u = match.group(2).lower()
+        try:
+            val = float(val_str)
+            if u.startswith('k'):
+                return f"{int(val) if val.is_integer() else val} kg"
+            elif u in ['g', 'gr', 'grs', 'gramo', 'gramos']:
+                return f"{int(val) if val.is_integer() else val} g"
+            elif u in ['cc', 'ml']:
+                return f"{int(val) if val.is_integer() else val} cc"
+            elif u.startswith('l'):
+                return f"{int(val) if val.is_integer() else val} L"
+            elif 'un' in u:
+                return f"{int(val)} un"
+        except Exception:
+            pass
+
+    try:
+        qty = float(quantity)
+        u = (unit or "").lower().strip()
+        if u == 'kg':
+            if qty < 0.99:
+                return f"{int(round(qty * 1000))} g"
+            return f"{int(qty) if qty.is_integer() else qty} kg"
+        elif u in ['l', 'lt', 'litro']:
+            if qty < 0.99:
+                return f"{int(round(qty * 1000))} cc"
+            return f"{int(qty) if qty.is_integer() else qty} L"
+        elif u in ['g', 'gr']:
+            return f"{int(qty)} g"
+        elif u in ['cc', 'ml']:
+            return f"{int(qty)} cc"
+        elif 'un' in u:
+            return f"{int(qty)} un"
+    except Exception:
+        pass
+
+    return "1 un"
+
+
 class ProductService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -30,13 +76,12 @@ class ProductService:
     ) -> List[ProductSearchResult]:
         """
         Búsqueda de alta precisión en el catálogo completo:
-        - Si se ingresa texto: combina coincidencia de tokens y frase con similitud semántica (pgvector).
-        - Si query es None o vacío: lista los productos del catálogo (o categoría) ordenados por disponibilidad.
-        - Filtra a nivel SQL para que NUNCA aparezcan productos sin stock o sin registros de precio.
+        - Cada formato específico (250g, 100g, 1kg, 12 un, etc.) se entrega como una ficha independiente.
+        - Destaca el precio real del formato a pagar en caja y el supermercado más económico con badge.
+        - Mantiene el precio unitario normalizado ($/kg o $/L) como dato de referencia secundario.
         """
         clean_q = query.strip() if query else ""
 
-        # Filtro base: el producto canónico DEBE tener al menos un SKU de tienda con precio registrado
         base_filter = CanonicalProduct.items.any(
             SupermarketItem.price_records.any()
         )
@@ -54,15 +99,11 @@ class ProductService:
             if category and category != "todos":
                 stmt = stmt.where(CanonicalProduct.category == category)
 
-            # Ordenar por ID descendente para mostrar variedad reciente
             stmt = stmt.order_by(desc(CanonicalProduct.id)).offset(offset).limit(limit)
             result = await self.db.execute(stmt)
             rows = [(cp, 1.0, 1.0) for cp in result.scalars().all()]
         else:
-            # Generar vector semántico para el término de búsqueda
             query_vector = VectorService.generate_embedding(clean_q)
-
-            # Tokens significativos para búsqueda textual
             tokens = [t.lower() for t in re.split(r"[\s,\-\+]+", clean_q) if len(t) >= 2]
 
             token_conditions = []
@@ -108,7 +149,6 @@ class ProductService:
                 .where(base_filter)
             )
 
-            # Filtro de relevancia estricto: coincidencia textual O similitud semántica alta (>= 0.70)
             if text_match_filter is not None:
                 stmt = stmt.where(
                     or_(
@@ -128,61 +168,84 @@ class ProductService:
 
         results: List[ProductSearchResult] = []
         for canonical, similarity, relevance in rows:
-            # Calcular mejor precio y supermercados disponibles
-            unit_prices: List[Decimal] = []
-            available_supers: List[str] = []
-            best_super_slug = "lider"
-            best_super_name = "Lider"
-            min_price = Decimal("999999")
-            max_price = Decimal("0")
-            representative_image = None
-
+            # Agrupar SKUs de tienda por formato específico (ej: '250 g', '100 g', '1 kg', etc.)
+            format_groups: Dict[str, List[SupermarketItem]] = {}
             for item in canonical.items:
-                if not item.is_available:
+                if not item.is_available or not item.price_records:
                     continue
-                super_slug = item.supermarket.slug
-                available_supers.append(item.supermarket.name)
-                if item.image_url and not representative_image:
-                    representative_image = item.image_url
+                fmt = extract_clean_format(item.package_quantity, item.package_unit, item.store_title)
+                format_groups.setdefault(fmt, []).append(item)
 
-                # Obtener último precio registrado
-                if item.price_records:
-                    latest_price = item.price_records[0]
-                    u_price = latest_price.unit_price_normalized
-                    unit_prices.append(u_price)
-                    if u_price < min_price:
-                        min_price = u_price
-                        best_super_slug = super_slug
-                        best_super_name = item.supermarket.name
-                    if u_price > max_price:
-                        max_price = u_price
+            for fmt_label, items_in_fmt in format_groups.items():
+                best_item = None
+                min_pack_price = Decimal("999999")
+                max_pack_price = Decimal("0")
+                min_unit_p = Decimal("999999")
+                max_unit_p = Decimal("0")
+                available_supers: List[str] = []
+                representative_img = None
 
-            if not unit_prices:
-                continue
+                for itm in items_in_fmt:
+                    latest = itm.price_records[0]
+                    actual_price = latest.offer_price if (latest.offer_price and latest.offer_price > 0) else latest.normal_price
+                    if actual_price <= Decimal(0):
+                        continue
 
-            results.append(
-                ProductSearchResult(
-                    id=canonical.id,
-                    name=canonical.name,
-                    category=canonical.category,
-                    subcategory=canonical.subcategory,
-                    brand=canonical.brand,
-                    standard_unit=canonical.standard_unit,
-                    min_unit_price=min_price,
-                    max_unit_price=max_price,
-                    best_supermarket_slug=best_super_slug,
-                    best_supermarket_name=best_super_name,
-                    available_supermarkets=list(set(available_supers)),
-                    similarity_score=float(similarity) if similarity is not None else 1.0,
-                    image_url=representative_image
+                    available_supers.append(itm.supermarket.name)
+                    if itm.image_url and not representative_img:
+                        representative_img = itm.image_url
+
+                    if actual_price < min_pack_price:
+                        min_pack_price = actual_price
+                        best_item = itm
+                    if actual_price > max_pack_price:
+                        max_pack_price = actual_price
+
+                    u_price = latest.unit_price_normalized
+                    if u_price > Decimal(0):
+                        if u_price < min_unit_p:
+                            min_unit_p = u_price
+                        if u_price > max_unit_p:
+                            max_unit_p = u_price
+
+                if not best_item or min_pack_price == Decimal("999999"):
+                    continue
+
+                savings_amt = (max_pack_price - min_pack_price) if max_pack_price > min_pack_price else Decimal(0)
+                savings_pct = int(round((savings_amt / max_pack_price) * 100)) if max_pack_price > 0 else 0
+
+                clean_name = canonical.name
+                if fmt_label not in clean_name and len(format_groups) > 1:
+                    clean_name = f"{clean_name} {fmt_label}"
+
+                results.append(
+                    ProductSearchResult(
+                        id=canonical.id,
+                        name=clean_name,
+                        category=canonical.category,
+                        subcategory=canonical.subcategory,
+                        brand=canonical.brand,
+                        package_format=fmt_label,
+                        standard_unit=canonical.standard_unit,
+                        best_package_price=min_pack_price,
+                        highest_package_price=max_pack_price,
+                        savings_amount=savings_amt,
+                        savings_percentage=savings_pct,
+                        min_unit_price=min_unit_p if min_unit_p != Decimal("999999") else min_pack_price,
+                        max_unit_price=max_unit_p if max_unit_p != Decimal(0) else max_pack_price,
+                        best_supermarket_slug=best_item.supermarket.slug,
+                        best_supermarket_name=best_item.supermarket.name,
+                        available_supermarkets=list(set(available_supers)),
+                        similarity_score=float(similarity) if similarity is not None else 1.0,
+                        image_url=representative_img
+                    )
                 )
-            )
 
         return results
 
-    async def get_product_detail(self, canonical_id: int) -> Optional[CanonicalProductDetail]:
+    async def get_product_detail(self, canonical_id: int, format: Optional[str] = None) -> Optional[CanonicalProductDetail]:
         """
-        Obtiene la comparativa detallada de precios en cada uno de los 4 supermercados para un producto.
+        Obtiene la comparativa detallada de precios en cada uno de los 4 supermercados para un producto y formato específico.
         """
         stmt = (
             select(CanonicalProduct)
@@ -197,11 +260,43 @@ class ProductService:
         if not canonical:
             return None
 
-        items_comparison: List[SupermarketItemComparison] = []
-        best_price = Decimal("999999")
-        best_super = None
+        valid_items = [itm for itm in canonical.items if itm.is_available and itm.price_records]
+        if not valid_items:
+            valid_items = canonical.items
 
-        for item in canonical.items:
+        if format:
+            filtered = [
+                itm for itm in valid_items 
+                if extract_clean_format(itm.package_quantity, itm.package_unit, itm.store_title) == format
+            ]
+            if filtered:
+                valid_items = filtered
+
+        best_pack_price = Decimal("999999")
+        highest_pack_price = Decimal("0")
+        best_unit_price = Decimal("999999")
+        best_super_name = None
+        best_super_slug = None
+
+        for item in valid_items:
+            latest_price = item.price_records[0] if item.price_records else None
+            if not latest_price:
+                continue
+            act_price = latest_price.offer_price if (latest_price.offer_price and latest_price.offer_price > 0) else latest_price.normal_price
+            if act_price > 0:
+                if act_price < best_pack_price:
+                    best_pack_price = act_price
+                    best_super_name = item.supermarket.name
+                    best_super_slug = item.supermarket.slug
+                if act_price > highest_pack_price:
+                    highest_pack_price = act_price
+
+            u_p = latest_price.unit_price_normalized
+            if u_p > 0 and u_p < best_unit_price:
+                best_unit_price = u_p
+
+        items_comparison: List[SupermarketItemComparison] = []
+        for item in valid_items:
             latest_price = item.price_records[0] if item.price_records else None
             normal_p = latest_price.normal_price if latest_price else Decimal(0)
             offer_p = latest_price.offer_price if latest_price else None
@@ -209,9 +304,9 @@ class ProductService:
             is_off = latest_price.is_offer if latest_price else False
             updated = latest_price.recorded_at if latest_price else item.last_seen_at
 
-            if unit_p > Decimal(0) and unit_p < best_price:
-                best_price = unit_p
-                best_super = item.supermarket.name
+            current_pack_p = offer_p if (offer_p and offer_p > 0) else normal_p
+            is_cheapest = (current_pack_p == best_pack_price and current_pack_p > Decimal(0))
+            fmt_str = extract_clean_format(item.package_quantity, item.package_unit, item.store_title)
 
             items_comparison.append(
                 SupermarketItemComparison(
@@ -226,17 +321,24 @@ class ProductService:
                     image_url=item.image_url,
                     package_quantity=item.package_quantity,
                     package_unit=item.package_unit,
+                    package_format=fmt_str,
                     is_available=item.is_available,
                     current_normal_price=normal_p,
                     current_offer_price=offer_p,
+                    current_package_price=current_pack_p,
                     current_unit_price_normalized=unit_p,
                     is_current_offer=is_off,
+                    is_cheapest=is_cheapest,
                     last_updated=updated
                 )
             )
 
-        # Ordenar items por precio unitario ascendente (el más barato primero)
-        items_comparison.sort(key=lambda x: x.current_unit_price_normalized)
+        items_comparison.sort(key=lambda x: (x.current_package_price if x.current_package_price > 0 else Decimal(999999)))
+
+        savings_amt = (highest_pack_price - best_pack_price) if highest_pack_price > best_pack_price else Decimal(0)
+        savings_pct = int(round((savings_amt / highest_pack_price) * 100)) if highest_pack_price > 0 else 0
+
+        target_fmt = format or (items_comparison[0].package_format if items_comparison else "1 un")
 
         return CanonicalProductDetail(
             id=canonical.id,
@@ -245,9 +347,15 @@ class ProductService:
             subcategory=canonical.subcategory,
             brand=canonical.brand,
             standard_unit=canonical.standard_unit,
+            package_format=target_fmt,
             description=canonical.description,
-            best_price_per_unit=best_price if best_price != Decimal("999999") else None,
-            best_supermarket_name=best_super,
+            best_package_price=best_pack_price if best_pack_price != Decimal("999999") else None,
+            highest_package_price=highest_pack_price if highest_pack_price > 0 else None,
+            savings_amount=savings_amt,
+            savings_percentage=savings_pct,
+            best_price_per_unit=best_unit_price if best_unit_price != Decimal("999999") else None,
+            best_supermarket_name=best_super_name,
+            best_supermarket_slug=best_super_slug,
             items=items_comparison
         )
 

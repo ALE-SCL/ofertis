@@ -58,14 +58,28 @@ class EntityResolutionAgent(BaseAgent):
         match_row = res_vector.first()
 
         canonical_id = None
+        is_same_format = False
         if match_row and match_row[1] >= self.MATCH_SIMILARITY_THRESHOLD:
-            # Encontró coincidencia semántica de alta confianza
             canonical_match = match_row[0]
-            canonical_id = canonical_match.id
-            logger.info(
-                f"[VECTOR MATCH {match_row[1]:.2f}] '{item.store_title}' -> Canónico '{canonical_match.name}' (ID: {canonical_id})"
-            )
-        else:
+            stmt_existing_items = select(SupermarketItem.package_quantity, SupermarketItem.package_unit).where(
+                SupermarketItem.canonical_id == canonical_match.id
+            ).limit(1)
+            res_items = await self.db.execute(stmt_existing_items)
+            existing_item_qty = res_items.first()
+            if existing_item_qty:
+                ex_q, ex_u = existing_item_qty
+                if ex_u == item.package_unit and abs(float(ex_q) - float(item.package_quantity)) <= (float(ex_q) * 0.15 + 0.01):
+                    is_same_format = True
+            else:
+                is_same_format = True
+
+            if is_same_format:
+                canonical_id = canonical_match.id
+                logger.info(
+                    f"[VECTOR MATCH {match_row[1]:.2f}] '{item.store_title}' -> Canónico '{canonical_match.name}' (ID: {canonical_id})"
+                )
+
+        if not canonical_id:
             # Crear nueva entidad canónica e indexar su vector
             raw_title = item.store_title.strip()
             if item.canonical_subcategory and item.canonical_subcategory.lower() not in ["otros", "general", "none"]:

@@ -71,19 +71,19 @@ export function RadarAlternativoView() {
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Hero & Buscador de Radar Alternativo */}
-      <div className="bg-white rounded-3xl p-6 sm:p-10 border border-orange-100/80 shadow-xs relative overflow-hidden">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-orange-100/80 shadow-xs relative overflow-hidden">
         <div className="max-w-3xl">
           <div className="inline-flex items-center space-x-2 bg-orange-50 text-orange-900 px-3.5 py-1.5 rounded-full text-xs font-bold border border-orange-200/80 mb-3 shadow-xs">
             <Coins className="w-3.5 h-3.5 text-orange-600" />
             <span>Canales alternativos y distribuidores mayoristas</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight leading-tight">
-            Ahorra hasta un <span className="text-orange-600">65%</span> en <span className="text-rose-600">Doña Carne</span>, <span className="text-blue-600">Alvi</span>, <span className="text-amber-600">Central Mayorista</span> y más.
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+            Compara precios entre distribuidores y supermercados mayoristas
           </h1>
 
           <p className="text-sm sm:text-base text-stone-600 mt-2">
-            Comparamos en tiempo real carnicerías directas, supermercados mayoristas, bodegas y distribuidoras de alimentos (Alvi, Central Mayorista, Comercial Castro, La Oferta, Comercial Teba, Distribuidora Santiago, Abu-Gosh, El Carnicero, Lo Valledor y aCuenta).
+            Compara precios en tiempo real entre canales mayoristas, carnicerías directas y bodegas (Alvi, Central Mayorista, Mayorista 10, SuperBodega aCuenta, Doña Carne, El Carnicero y Lo Valledor).
           </p>
 
           {/* Formulario de Búsqueda */}

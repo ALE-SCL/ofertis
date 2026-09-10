@@ -72,12 +72,12 @@ ALTERNATIVE_STORES = [
     },
     {
         "id": "lo_valledor",
-        "name": "Mercado Mayorista Lo Valledor (ODEPA Minagri)",
+        "name": "Mercado Mayorista Lo Valledor",
         "type": "MERCADO_CONCENTRADOR",
         "type_label": "Mercado Mayorista",
         "badge_color": "emerald",
         "website": "https://lovalledor.cl",
-        "description": "El mayor mercado concentrador de frutas, verduras y hortalizas de Chile. Precios certificados por el Ministerio de Agricultura.",
+        "description": "El mayor mercado concentrador de frutas, verduras y hortalizas de Chile. Venta al por mayor en sacos y cajas.",
         "coverage": "Pedro Aguirre Cerda, Santiago (Venta al por mayor en sacos y cajas)",
         "highlight": "Ahorro de más del 50% comprando por volumen"
     },
@@ -184,13 +184,13 @@ ALTERNATIVE_STORES = [
 
 # Catálogo consolidado de productos y oportunidades de ahorro verificadas
 RAW_ALTERNATIVE_ITEMS = [
-    # --- MERCADO MAYORISTA LO VALLEDOR (ODEPA) ---
+    # --- MERCADO MAYORISTA LO VALLEDOR ---
     {
         "sku": "LV-001",
         "product_name": "Papas Variedad Patagonia (Saco 25 kg)",
         "category": "frutas_verduras",
         "store_id": "lo_valledor",
-        "store_name": "Mercado Mayorista Lo Valledor (ODEPA)",
+        "store_name": "Mercado Mayorista Lo Valledor",
         "store_type": "MERCADO_CONCENTRADOR",
         "unit": "saco 25 kg ($450/kg)",
         "price": 11250.0,
@@ -206,7 +206,7 @@ RAW_ALTERNATIVE_ITEMS = [
         "product_name": "Cebollas Seleccionadas (Malla 18 kg)",
         "category": "frutas_verduras",
         "store_id": "lo_valledor",
-        "store_name": "Mercado Mayorista Lo Valledor (ODEPA)",
+        "store_name": "Mercado Mayorista Lo Valledor",
         "store_type": "MERCADO_CONCENTRADOR",
         "unit": "malla 18 kg ($500/kg)",
         "price": 9000.0,
@@ -222,7 +222,7 @@ RAW_ALTERNATIVE_ITEMS = [
         "product_name": "Tomates Larga Vida Primera (Caja 18 kg)",
         "category": "frutas_verduras",
         "store_id": "lo_valledor",
-        "store_name": "Mercado Mayorista Lo Valledor (ODEPA)",
+        "store_name": "Mercado Mayorista Lo Valledor",
         "store_type": "MERCADO_CONCENTRADOR",
         "unit": "caja 18 kg ($800/kg)",
         "price": 14400.0,
@@ -238,7 +238,7 @@ RAW_ALTERNATIVE_ITEMS = [
         "product_name": "Huevos Grandes de Color (Bandeja 30 un.)",
         "category": "lacteos_huevos",
         "store_id": "lo_valledor",
-        "store_name": "Mercado Mayorista Lo Valledor (ODEPA)",
+        "store_name": "Mercado Mayorista Lo Valledor",
         "store_type": "MERCADO_CONCENTRADOR",
         "unit": "bandeja 30 un ($210/un)",
         "price": 6300.0,

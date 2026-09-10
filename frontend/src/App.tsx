@@ -29,6 +29,7 @@ export function App() {
 
   // Estados de Modales
   const [selectedCanonicalId, setSelectedCanonicalId] = useState<number | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
   const [alertModalState, setAlertModalState] = useState<{
     isOpen: boolean;
     productName: string;
@@ -259,7 +260,10 @@ export function App() {
             {/* Carrusel con Mejores Ofertas y Mayor Porcentaje de Descuento */}
             <TopDealsCarousel
               products={products}
-              onViewComparison={(id) => setSelectedCanonicalId(id)}
+              onViewComparison={(id, fmt) => {
+                setSelectedCanonicalId(id);
+                setSelectedFormat(fmt || null);
+              }}
             />
 
             {/* Filtro por Categorías */}
@@ -285,7 +289,7 @@ export function App() {
                   <span>Resultados Comparados ({products.length})</span>
                 </h2>
                 <span className="text-xs font-semibold text-stone-500">
-                  Precios calculados por $/kg y $/L
+                  Precios por formato y valor de referencia
                 </span>
               </div>
 
@@ -300,9 +304,12 @@ export function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {products.map((product) => (
                     <ProductCard
-                      key={product.id}
+                      key={`${product.id}-${product.package_format}`}
                       product={product}
-                      onViewComparison={(id) => setSelectedCanonicalId(id)}
+                      onViewComparison={(id, fmt) => {
+                        setSelectedCanonicalId(id);
+                        setSelectedFormat(fmt || null);
+                      }}
                       onSetAlert={handleOpenAlert}
                     />
                   ))}
@@ -351,9 +358,14 @@ export function App() {
       {/* Modal de Detalle y Comparativa */}
       <ProductDetailModal
         canonicalId={selectedCanonicalId}
-        onClose={() => setSelectedCanonicalId(null)}
+        format={selectedFormat}
+        onClose={() => {
+          setSelectedCanonicalId(null);
+          setSelectedFormat(null);
+        }}
         onSetAlert={(pName, cId, bPrice) => {
           setSelectedCanonicalId(null);
+          setSelectedFormat(null);
           setAlertModalState({
             isOpen: true,
             productName: pName,

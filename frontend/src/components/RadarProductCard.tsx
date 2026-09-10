@@ -81,55 +81,69 @@ export const RadarProductCard: React.FC<RadarProductCardProps> = ({
             </span>
           </div>
 
-          {/* Nombre del Producto */}
-          <h3 className="text-sm sm:text-base font-bold text-stone-900 line-clamp-2 mb-3 group-hover:text-orange-950 transition-colors">
+          <h3 className="text-sm sm:text-base font-bold text-stone-900 line-clamp-2 mb-2 group-hover:text-orange-950 transition-colors">
             {opportunity.product_name}
           </h3>
 
-          {/* Precios Normalizados y Comparativa */}
+          {/* Bloque de Precios con Formato Real (Estructura Unificada con Retail) */}
           <div className="bg-orange-50/40 rounded-xl p-3 border border-orange-100/70 mb-3">
+            {/* Badge obligatorio: Precio más barato */}
+            <div className="flex items-center justify-between mb-2">
+              <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg font-black text-[11px] border shadow-2xs ${badgeColors.bg} ${badgeColors.text} ${badgeColors.border}`}>
+                <span>★ Precio más barato: {opportunity.store_name.split(' (')[0]}</span>
+              </span>
+              {opportunity.savings_percentage > 0 && (
+                <span className="text-[11px] font-bold text-orange-700 bg-orange-100/90 px-2 py-0.5 rounded-md">
+                  -{opportunity.savings_percentage}%
+                </span>
+              )}
+            </div>
+
+            {/* Precio Principal Grande del Formato Real */}
             <div className="flex items-baseline justify-between">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-800">
-                  Precio Alternativo:
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 block mb-0.5">
+                  Precio a pagar:
                 </span>
-                <div className="text-lg sm:text-xl font-black text-stone-900">
-                  ${Math.round(opportunity.alternative_price).toLocaleString('es-CL')}
-                  <span className="text-xs font-semibold text-stone-500 ml-1">
-                    / {opportunity.unit}
+                <div className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight flex items-baseline space-x-1.5">
+                  <span>${Math.round(opportunity.alternative_price).toLocaleString('es-CL')}</span>
+                  <span className="text-xs font-bold text-stone-700 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200/80">
+                    {opportunity.unit}
                   </span>
                 </div>
               </div>
 
               {opportunity.traditional_benchmark_price > opportunity.alternative_price && (
                 <div className="text-right">
-                  <span className="text-[10px] text-stone-400 line-through block">
-                    Retail: ${Math.round(opportunity.traditional_benchmark_price).toLocaleString('es-CL')}
-                  </span>
-                  <span className="text-[10px] font-bold text-orange-700 bg-orange-100/80 px-1.5 py-0.5 rounded">
-                    -{opportunity.savings_percentage}%
+                  <span className="text-[10px] text-stone-400 block">Hasta</span>
+                  <span className="text-xs text-stone-400 line-through font-medium">
+                    ${Math.round(opportunity.traditional_benchmark_price).toLocaleString('es-CL')}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Canal y ahorro en pesos */}
-            <div className="mt-2 flex items-center justify-between pt-2 border-t border-orange-100/60 text-xs">
-              <span className="text-stone-500 font-medium">Canal más económico:</span>
-              <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] border ${badgeColors.bg} ${badgeColors.text} ${badgeColors.border}`}>
-                {opportunity.store_name.split(' ')[0]}
+            {/* Precio Secundario de Referencia ($/kg o $/un) y Ahorro */}
+            <div className="mt-2 flex items-center justify-between pt-2 border-t border-orange-100/70 text-xs">
+              <span className="text-stone-500 font-medium">
+                Ref. normalizada:
+              </span>
+              <span className="font-bold text-stone-700">
+                ${Math.round(opportunity.unit_price_alternative).toLocaleString('es-CL')} / ref
               </span>
             </div>
 
-            <div className="mt-1.5 flex items-center justify-between text-xs pt-1">
-              <span className="text-stone-600 font-semibold">Ahorras en tu compra:</span>
-              <span className="text-orange-900 font-black">
-                -${Math.round(opportunity.savings_clp).toLocaleString('es-CL')} CLP
-              </span>
-            </div>
+            {opportunity.savings_clp > 0 && (
+              <div className="mt-1.5 flex items-center justify-between text-xs pt-1 border-t border-orange-100/40">
+                <span className="text-stone-600 font-medium">Ahorras en este bulto:</span>
+                <span className="text-orange-700 font-extrabold">
+                  ${Math.round(opportunity.savings_clp).toLocaleString('es-CL')}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Nota / Recomendación de Compra */}
+          {/* Nota / Recomendación de Compra Mayorista */}
           <p className="text-[11px] text-stone-600 italic bg-amber-50/50 p-2.5 rounded-lg border border-amber-100/70 mb-3 line-clamp-2 leading-relaxed">
             "{opportunity.recommendation_note}"
           </p>

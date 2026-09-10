@@ -3,8 +3,8 @@
 Ofertis Chile - Ingestion and Mining Engine for Radar Alternativo & Wholesale Stores
 ==================================================================================
 Persiste tiendas alternativas y mayoristas, ejecuta scrapers en vivo (Doña Carne Shopify,
-distribuidores mayoristas, Lo Valledor ODEPA, El Carnicero), calcula spreads reales frente
-al retail tradicional y almacena embeddings semánticos en PostgreSQL + pgvector.
+distribuidores mayoristas, Lo Valledor, El Carnicero), calcula spreads reales entre canales
+mayoristas y almacena embeddings semánticos en PostgreSQL + pgvector.
 """
 
 import os
@@ -158,7 +158,7 @@ async def ingest_items(session, store_id_map: Dict[str, int]):
     except Exception as e:
         logger.warning(f"Error en Wholesale Distributors scraper: {e}")
 
-    # 3. Catálogo base verificado de Radar Alternativo (Lo Valledor ODEPA, El Carnicero, aCuenta, Mayorista 10)
+    # 3. Catálogo base verificado de Radar Alternativo (Lo Valledor, El Carnicero, aCuenta, Mayorista 10)
     logger.info(f"Incorporando catálogo verificado de Radar Alternativo ({len(RAW_ALTERNATIVE_ITEMS)} items)...")
     all_raw_items.extend(RAW_ALTERNATIVE_ITEMS)
 
