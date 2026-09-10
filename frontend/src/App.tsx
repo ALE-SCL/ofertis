@@ -186,26 +186,22 @@ export function App() {
 
           <div className="text-xs text-stone-500 px-3 hidden md:block">
             {activeTab === 'retail' 
-              ? 'Comparando Jumbo, Lider, Santa Isabel y Unimarc con normalización de unidad.'
-              : 'Canales mayoristas, carnicerías directas y ferias con brecha real contra retail.'}
+              ? 'Precios normalizados por kilo y litro' 
+              : 'Canales mayoristas y ferias directas'}
           </div>
         </div>
 
         {activeTab === 'retail' ? (
           <>
             {/* Hero & Buscador */}
-            <div className="bg-white rounded-3xl p-6 sm:p-10 border border-orange-100/80 shadow-xs relative overflow-hidden">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-orange-100/80 shadow-xs relative overflow-hidden">
               <div className="max-w-3xl">
-                <div className="inline-flex items-center space-x-2 bg-orange-50 text-orange-900 px-3.5 py-1.5 rounded-full text-xs font-bold border border-orange-200/80 mb-3 shadow-xs">
-                  <span>Comparador de Precios de Supermercados en Chile</span>
-                </div>
-
-                <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight leading-tight">
-                  Compara precios en tiempo real en <span className="text-blue-600">Lider</span>, <span className="text-orange-600">Jumbo</span>, <span className="text-rose-600">Santa Isabel</span> y <span className="text-red-600">Unimarc</span>.
+                <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+                  Encuentra el precio más conveniente de tu canasta
                 </h1>
 
-                <p className="text-sm sm:text-base text-stone-600 mt-2">
-                  Estandarizamos todos los envases y formatos al mismo peso y volumen ($/kg y $/litro) para que encuentres la opción más conveniente para tus compras.
+                <p className="text-sm sm:text-base text-stone-600 mt-1.5">
+                  Precios actualizados y normalizados por unidad ($/kg y $/L) para comparar el valor real entre envases y marcas.
                 </p>
 
                 {/* Input de Búsqueda */}
