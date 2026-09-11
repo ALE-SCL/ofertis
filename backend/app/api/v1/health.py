@@ -30,5 +30,6 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         "database": db_status,
         "pgvector": pgvector_status,
         "embedding_model": settings.EMBEDDING_MODEL_NAME,
-        "whatsapp_provider": settings.WHATSAPP_PROVIDER
+        "whatsapp_provider": settings.WHATSAPP_PROVIDER,
+        "version": "2026.09.11-v2"
     }

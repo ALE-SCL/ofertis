@@ -107,19 +107,26 @@ async def generate_news_pipeline(
     3. Retorna el estado y los artículos disponibles inmediatamente.
     """
     import asyncio
-    from app.services.pipeline_service import execute_full_pipeline
+    import traceback
+    try:
+        from app.services.pipeline_service import execute_full_pipeline
 
-    result = await asyncio.to_thread(execute_full_pipeline, is_sample=sample, simulate=simulate)
-    if not result.get("success"):
-        raise HTTPException(status_code=500, detail=result.get("error", "Error ejecutando pipeline de noticias"))
+        result = await asyncio.to_thread(execute_full_pipeline, is_sample=sample, simulate=simulate)
 
-    service = SentinelaService()
-    fresh_articles = service.get_all_articles(limit=10)
+        service = SentinelaService()
+        fresh_articles = service.get_all_articles(limit=10)
 
-    return {
-        "success": True,
-        "message": "Pipeline de noticias ejecutado exitosamente",
-        "result": result,
-        "articles": fresh_articles
-    }
+        return {
+            "success": True,
+            "message": "Pipeline de noticias ejecutado exitosamente",
+            "result": result,
+            "articles": fresh_articles
+        }
+    except Exception as e:
+        logger.error(f"Error en generate_news_pipeline: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 
