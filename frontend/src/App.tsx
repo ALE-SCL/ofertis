@@ -48,7 +48,50 @@ export function App() {
     }
   }, [isDarkMode]);
 
-  const [activeTab, setActiveTab] = useState<'retail' | 'radar' | 'alza-precios'>('retail');
+  const [activeTab, setActiveTab] = useState<'retail' | 'radar' | 'alza-precios'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (params.get('article') || tabParam === 'alza-precios') {
+        return 'alza-precios';
+      }
+      if (tabParam === 'radar') return 'radar';
+    }
+    return 'retail';
+  });
+
+  const handleTabChange = (tab: 'retail' | 'radar' | 'alza-precios') => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (tab === 'retail') {
+        url.searchParams.delete('tab');
+        url.searchParams.delete('article');
+      } else if (tab === 'radar') {
+        url.searchParams.set('tab', 'radar');
+        url.searchParams.delete('article');
+      } else if (tab === 'alza-precios') {
+        url.searchParams.set('tab', 'alza-precios');
+      }
+      window.history.pushState({}, '', url.toString());
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('article') || params.get('tab') === 'alza-precios') {
+        setActiveTab('alza-precios');
+      } else if (params.get('tab') === 'radar') {
+        setActiveTab('radar');
+      } else {
+        setActiveTab('retail');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -188,7 +231,7 @@ export function App() {
         onToggleDarkMode={toggleDarkMode}
         onOpenMyAlerts={() => alert('Ingresa tu número en el botón de Alerta WhatsApp de cualquier producto para ver tus alertas.')}
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={handleTabChange}
       />
       <MiningStatsBanner stats={stats} />
 
@@ -197,7 +240,7 @@ export function App() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white dark:bg-stone-900 p-2 sm:p-2.5 rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-xs">
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => setActiveTab('retail')}
+              onClick={() => handleTabChange('retail')}
               className={`flex-1 sm:flex-none flex items-center justify-center space-x-2.5 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
                 activeTab === 'retail'
                   ? 'bg-orange-600 text-white shadow-md shadow-orange-500/20'
@@ -214,7 +257,7 @@ export function App() {
             </button>
 
             <button
-              onClick={() => setActiveTab('radar')}
+              onClick={() => handleTabChange('radar')}
               className={`flex-1 sm:flex-none flex items-center justify-center space-x-2.5 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
                 activeTab === 'radar'
                   ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-md shadow-orange-500/20'
@@ -231,7 +274,7 @@ export function App() {
             </button>
 
             <button
-              onClick={() => setActiveTab('alza-precios')}
+              onClick={() => handleTabChange('alza-precios')}
               className={`flex-1 sm:flex-none flex items-center justify-center space-x-2.5 px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
                 activeTab === 'alza-precios'
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/25'
@@ -439,7 +482,15 @@ export function App() {
         ) : activeTab === 'radar' ? (
           <RadarAlternativoView />
         ) : (
-          <AlzaPreciosBlog />
+          <AlzaPreciosBlog
+            onSearchProduct={(searchQuery: string) => {
+              handleTabChange('retail');
+              setQuery(searchQuery);
+              setSelectedCategory('todos');
+              handleSearch(searchQuery, 'todos');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         )}
       </main>
 

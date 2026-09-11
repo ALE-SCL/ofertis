@@ -22,10 +22,14 @@ import {
   Instagram,
   Download,
   Copy,
-  Check
 } from 'lucide-react';
 import { SentinelaArticle, SentinelaStats } from '../types';
 import { API_BASE_URL } from '../config/api';
+import { ArticleLandingPage } from './ArticleLandingPage';
+
+export interface AlzaPreciosBlogProps {
+  onSearchProduct?: (query: string) => void;
+}
 
 /**
  * Galerías temáticas curadas en alta resolución (Unsplash) por producto y factor económico.
@@ -703,7 +707,7 @@ const downloadCanvasStory = (art: SentinelaArticle) => {
   link.click();
 };
 
-export const AlzaPreciosBlog: React.FC = () => {
+export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduct }) => {
   const [articles, setArticles] = useState<SentinelaArticle[]>([]);
   const [stats, setStats] = useState<SentinelaStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -715,6 +719,22 @@ export const AlzaPreciosBlog: React.FC = () => {
   const [instagramArticle, setInstagramArticle] = useState<SentinelaArticle | null>(null);
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [storyDesignMode, setStoryDesignMode] = useState<'editorial' | 'canvas'>('editorial');
+
+  // Navegación de Landing Page con sincronización de URL (?article=...)
+  const handleSelectArticle = (art: SentinelaArticle | null) => {
+    setSelectedArticle(art);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (art) {
+        url.searchParams.set('tab', 'alza-precios');
+        url.searchParams.set('article', art.id);
+      } else {
+        url.searchParams.delete('article');
+        url.searchParams.delete('post');
+      }
+      window.history.pushState({ articleId: art?.id || null }, '', url.toString());
+    }
+  };
 
   // Mapa determinista de fotografías temáticas no repetidas para cada artículo
   const articleImageMap = React.useMemo(() => buildArticleImageMap(articles), [articles]);
@@ -745,6 +765,29 @@ export const AlzaPreciosBlog: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Detectar artículo en la URL (?article=...) al cargar la página o navegar con el historial
+  useEffect(() => {
+    const handleUrlArticleSync = () => {
+      if (typeof window === 'undefined' || articles.length === 0) return;
+      const params = new URLSearchParams(window.location.search);
+      const articleId = params.get('article') || params.get('post');
+      if (articleId) {
+        const found = articles.find(
+          (a) => a.id === articleId || a.id.toLowerCase() === articleId.toLowerCase()
+        );
+        if (found && (!selectedArticle || selectedArticle.id !== found.id)) {
+          setSelectedArticle(found);
+        }
+      } else if (!articleId && selectedArticle) {
+        setSelectedArticle(null);
+      }
+    };
+
+    handleUrlArticleSync();
+    window.addEventListener('popstate', handleUrlArticleSync);
+    return () => window.removeEventListener('popstate', handleUrlArticleSync);
+  }, [articles, selectedArticle]);
 
   // Conteos por dirección de tendencia
   const directionCounts = React.useMemo(() => {
@@ -795,18 +838,247 @@ export const AlzaPreciosBlog: React.FC = () => {
   const featuredArticle = filteredArticles.find((a) => a.severity === 'ALTA') || filteredArticles[0];
   const gridArticles = filteredArticles.filter((a) => a !== featuredArticle);
 
-  const featuredMeta = featuredArticle ? getDirectionMeta(featuredArticle.trend_direction) : null;
-  const selectedMeta = selectedArticle ? getDirectionMeta(selectedArticle.trend_direction) : null;
+  // Renderizador del Modal de Instagram Stories (compartido entre blog y landing page)
+  const renderInstagramModal = () => {
+    if (!instagramArticle) return null;
 
-  // Rango de fechas del artículo destacado
-  const featuredHikeWindow = featuredArticle
-    ? getPriceHikeWindow(featuredArticle.date, featuredArticle.lag_days_min, featuredArticle.lag_days_max)
-    : null;
+    const exportArticle = instagramArticle;
+    const exportThemeKey = getArticleThemeKey(exportArticle);
+    const pool = THEMATIC_IMAGE_POOLS[exportThemeKey] || THEMATIC_IMAGE_POOLS.frutas_y_verduras;
+    const exportImage = (exportArticle.id && articleImageMap.get(exportArticle.id)) || pool[0];
+    const exportMeta = getDirectionMeta(exportArticle.trend_direction);
+    const exportWindow = getPriceHikeWindow(exportArticle.date, exportArticle.lag_days_min, exportArticle.lag_days_max);
 
-  // Rango de fechas del artículo abierto en modal
-  const modalHikeWindow = selectedArticle
-    ? getPriceHikeWindow(selectedArticle.date, selectedArticle.lag_days_min, selectedArticle.lag_days_max)
-    : null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs animate-fade-in overflow-y-auto">
+        <div className="bg-white dark:bg-stone-900 rounded-3xl max-w-4xl w-full border border-stone-200 dark:border-stone-800 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[95vh]">
+          {/* Cabecera del Modal */}
+          <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between bg-stone-50/70 dark:bg-stone-850/70 shrink-0">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-pink-500/25">
+                <Instagram className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-stone-900 dark:text-white flex items-center space-x-2">
+                  <span>Generador de Publicaciones Instagram</span>
+                  <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-pink-100 dark:bg-pink-950/80 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-800">
+                    Formato 9:16 (Story / Reel)
+                  </span>
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Diseños verticales optimizados listos para descargar y compartir.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setInstagramArticle(null)}
+              className="p-2 rounded-full hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-500 transition-colors cursor-pointer"
+              aria-label="Cerrar modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Contenido en 2 columnas: Vista previa 9:16 + Opciones de Exportación */}
+          <div className="p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            {/* Columna Izquierda: Mockup Smartphone 9:16 */}
+            <div className="lg:col-span-6 flex flex-col items-center justify-center">
+              {/* Selector de plantilla */}
+              <div className="flex items-center space-x-2 mb-3 bg-stone-100 dark:bg-stone-800 p-1 rounded-2xl w-full max-w-[300px]">
+                <button
+                  onClick={() => setStoryDesignMode('editorial')}
+                  className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    storyDesignMode === 'editorial'
+                      ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-xs font-black'
+                      : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
+                  }`}
+                >
+                  🎨 Arte 3D Editorial
+                </button>
+                <button
+                  onClick={() => setStoryDesignMode('canvas')}
+                  className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    storyDesignMode === 'canvas'
+                      ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-xs font-black'
+                      : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
+                  }`}
+                >
+                  ⚡ Directo HD
+                </button>
+              </div>
+
+              {/* Marco del celular */}
+              <div className="relative w-[280px] sm:w-[310px] aspect-9/16 rounded-[40px] p-3 bg-stone-950 shadow-2xl shadow-black/60 border-4 border-stone-800 shrink-0">
+                {/* Bocina y cámara frontal simulada */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-stone-900 rounded-full z-20 flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 rounded-full bg-stone-800 mr-2" />
+                  <div className="w-8 h-1 rounded-full bg-stone-800" />
+                </div>
+
+                {/* Pantalla del celular con el diseño 9:16 */}
+                <div className="relative w-full h-full rounded-[30px] overflow-hidden flex flex-col justify-between p-4 bg-stone-950 text-white select-none">
+                  {/* Imagen de fondo con overlay */}
+                  <img
+                    src={exportImage}
+                    alt={exportArticle.title}
+                    className="absolute inset-0 w-full h-full object-cover opacity-35"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-stone-950/80 via-stone-950/50 to-stone-950/95 pointer-events-none" />
+
+                  {/* Header Story */}
+                  <div className="relative z-10 pt-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="inline-flex items-center space-x-1.5 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black px-2.5 py-1 rounded-full backdrop-blur-xs">
+                        <ShieldAlert className="w-3 h-3 text-emerald-400 animate-pulse" />
+                        <span>EL SENTINELA • OFERTIS</span>
+                      </div>
+                      <span className="text-[9px] text-stone-400 font-bold">
+                        {exportArticle.bulletin_id}
+                      </span>
+                    </div>
+
+                    <div className="inline-block">
+                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider ${
+                        exportArticle.trend_direction === 'BAJA'
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-red-500 text-white'
+                      }`}>
+                        {exportArticle.trend_direction === 'BAJA' ? '📉 Oportunidad de Baja' : '📈 Alerta de Alza'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Centro Story: Titular y Explicación */}
+                  <div className="relative z-10 space-y-3 my-auto py-2">
+                    <h4 className="text-base sm:text-lg font-black leading-tight text-white line-clamp-4 drop-shadow-md">
+                      {exportArticle.title}
+                    </h4>
+
+                    {/* Ventana de días */}
+                    <div className="bg-emerald-950/70 border border-emerald-500/50 rounded-2xl p-2.5 text-center backdrop-blur-xs">
+                      <div className="text-[9px] font-extrabold text-emerald-300 uppercase tracking-wider">
+                        Ventana en Góndolas:
+                      </div>
+                      <div className="text-sm font-black text-white">
+                        Del {exportWindow?.rangeText || `${exportArticle.lag_days_min} a ${exportArticle.lag_days_max} días`}
+                      </div>
+                    </div>
+
+                    {/* Productos afectados */}
+                    <div className="flex flex-wrap gap-1 justify-center">
+                      {(exportArticle.affected_products || []).slice(0, 3).map((p) => (
+                        <span
+                          key={p}
+                          className="bg-white/15 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md"
+                        >
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Footer Story: Call To Action */}
+                  <div className="relative z-10 pb-2 space-y-2 border-t border-white/10 pt-2 text-center">
+                    <div className="text-[10px] font-extrabold text-emerald-300">
+                      {(exportArticle.consumer_advice || '').replace('💡 Consejo Sentinela: ', '').slice(0, 75)}...
+                    </div>
+                    <div className="bg-white text-stone-900 text-[10px] font-black py-1.5 px-3 rounded-xl shadow-md">
+                      📲 Revisa el comparador en Ofertis
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Columna Derecha: Opciones y Botones de Descarga */}
+            <div className="lg:col-span-6 space-y-5">
+              <div className="space-y-2">
+                <h4 className="text-sm font-black text-stone-900 dark:text-white flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>Publicación Lista para Redes Sociales</span>
+                </h4>
+                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">
+                  Exporta esta gráfica en formato <strong>9:16 de alta resolución (1080x1920px)</strong> para publicarla en tus Historias de Instagram, Reels, estados de WhatsApp o TikTok.
+                </p>
+              </div>
+
+              {/* Botones de Descarga */}
+              <div className="space-y-3 pt-2">
+                <button
+                  onClick={() => exportInstagramStoryPng(exportArticle, exportImage)}
+                  className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-pink-600 via-rose-500 to-amber-500 hover:from-pink-700 hover:to-amber-600 text-white font-black py-3.5 px-6 rounded-2xl shadow-lg shadow-pink-500/25 text-sm transition-all cursor-pointer hover:scale-[1.01]"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Descargar Imagen 9:16 (1080x1920 HD)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const caption = `📢 ALERTA DEL SENTINELA • OFERTIS 🇨🇱\n\n${exportArticle.title}\n\n🗓️ Ventana estimada en góndola: Del ${exportWindow?.rangeText}\n📊 Certeza: ${Math.round(exportArticle.confidence_score * 100)}%\n\n💡 Consejo ciudadano: ${(exportArticle.consumer_advice || '').replace('💡 Consejo Sentinela: ', '')}\n\n📲 Compara los precios de supermercados en tiempo real en ofertis.cl #Ofertis #PreciosChile #SupermercadosChile #AhorroChile`;
+                    navigator.clipboard.writeText(caption);
+                    setCopiedCaption(true);
+                    setTimeout(() => setCopiedCaption(false), 2500);
+                  }}
+                  className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl text-xs font-bold transition-all border cursor-pointer ${
+                    copiedCaption
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200'
+                      : 'bg-stone-50 dark:bg-stone-850 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700'
+                  }`}
+                >
+                  {copiedCaption ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedCaption ? '¡Texto del Post Copiado al Portapapeles!' : 'Copiar Texto / Pie de Foto para el Post'}</span>
+                </button>
+              </div>
+
+              {/* Selector de otra alerta para exportar */}
+              {articles.length > 1 && (
+                <div className="pt-4 border-t border-stone-100 dark:border-stone-800 space-y-2">
+                  <span className="text-xs font-extrabold text-stone-500 dark:text-stone-400 block">
+                    Exportar otra alerta:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1">
+                    {articles.slice(0, 8).map((art, idx) => (
+                      <button
+                        key={art.id}
+                        onClick={() => setInstagramArticle(art)}
+                        className={`w-7 h-7 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          instagramArticle.id === art.id
+                            ? 'bg-pink-600 text-white font-black scale-110 shadow-xs'
+                            : 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+                        }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Si hay un artículo seleccionado (por clic o por parámetro URL ?article=...),
+  // renderizamos la LANDING PAGE completa y dedicada
+  if (selectedArticle) {
+    return (
+      <div className="space-y-8 animate-fade-in pb-12">
+        <ArticleLandingPage
+          article={selectedArticle}
+          articles={articles}
+          getImage={getImage}
+          onBack={() => handleSelectArticle(null)}
+          onSelectArticle={(art) => handleSelectArticle(art)}
+          onOpenInstagramStory={(art) => setInstagramArticle(art)}
+          onSearchProduct={onSearchProduct}
+        />
+        {renderInstagramModal()}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
@@ -1237,10 +1509,10 @@ export const AlzaPreciosBlog: React.FC = () => {
               {/* Botones de acción */}
               <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
-                  onClick={() => setSelectedArticle(featuredArticle)}
+                  onClick={() => handleSelectArticle(featuredArticle)}
                   className="flex-1 flex items-center justify-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 px-4 rounded-xl text-xs transition-all shadow-md shadow-emerald-600/25 cursor-pointer"
                 >
-                  <span>Ver Desglose Técnico y Fechas</span>
+                  <span>Leer Informe Completo</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
 
@@ -1402,7 +1674,7 @@ export const AlzaPreciosBlog: React.FC = () => {
                     {/* Botón inferior verde esmeralda y botón Instagram */}
                     <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center space-x-2">
                       <button
-                        onClick={() => setSelectedArticle(art)}
+                        onClick={() => handleSelectArticle(art)}
                         className="flex-1 flex items-center justify-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition-all shadow-sm shadow-emerald-600/20 cursor-pointer"
                       >
                         <span>Leer Análisis</span>
@@ -1427,425 +1699,8 @@ export const AlzaPreciosBlog: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Lectura en Profundidad */}
-      {selectedArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white dark:bg-stone-900 rounded-3xl max-w-2xl w-full border border-stone-200 dark:border-stone-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            {/* Foto de cabecera en el modal */}
-            <div className="relative h-48 sm:h-56 w-full shrink-0 bg-stone-100">
-              <img
-                src={getImage(selectedArticle)}
-                alt={selectedArticle.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
-
-              <button
-                onClick={() => setSelectedArticle(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white transition-all cursor-pointer z-10"
-                aria-label="Cerrar modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="absolute bottom-4 left-6 right-6 text-white">
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-300 block mb-1">
-                  {selectedArticle.category_label} • {selectedMeta?.heroTag || 'INFORME DEL SENTINELA'}
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
-                  {selectedArticle.title}
-                </h3>
-              </div>
-            </div>
-
-            {/* Contenido del modal con scroll interno */}
-            <div className="p-6 sm:p-8 space-y-5 overflow-y-auto">
-              {/* Fecha y Hora Exacta de Publicación */}
-              <div className="bg-stone-50 dark:bg-stone-850 p-3.5 rounded-2xl border border-stone-200 dark:border-stone-700 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div className="flex items-center space-x-2 text-stone-700 dark:text-stone-300">
-                  <Clock className="w-4 h-4 text-emerald-600" />
-                  <span>Publicación oficial: <strong className="text-stone-900 dark:text-stone-100">{formatPublicationDateTime(selectedArticle.date)}</strong></span>
-                </div>
-                <span className="text-stone-500 font-bold">Boletín {selectedArticle.bulletin_id}</span>
-              </div>
-
-              {/* Rango de Fechas */}
-              <div className="bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-800 rounded-2xl p-4 space-y-1.5">
-                <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider text-emerald-900 dark:text-emerald-300">
-                  <Calendar className="w-4 h-4 text-emerald-600" />
-                  <span>{selectedMeta?.datesTitle || 'Rango de Fechas Proyectado:'}</span>
-                </div>
-                <div className="text-lg sm:text-xl font-black text-emerald-950 dark:text-white">
-                  Del {modalHikeWindow?.rangeText}
-                </div>
-                <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed">
-                  Estimado en un plazo de <strong>{selectedArticle.lag_days_min} a {selectedArticle.lag_days_max} días</strong> desde la fecha y hora de emisión del informe ({formatPublicationDateTime(selectedArticle.date)}).
-                </p>
-              </div>
-
-              {/* Badges de Severidad, Dirección y Certeza */}
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className={`px-3 py-1 rounded-lg font-black ${
-                  selectedArticle.severity === 'ALTA'
-                    ? 'bg-red-100 text-red-800 border border-red-200'
-                    : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                }`}>
-                  Severidad {selectedArticle.severity}
-                </span>
-
-                <span className={`px-3 py-1 rounded-lg font-black border ${selectedMeta?.badgeBg} ${selectedMeta?.badgeText} ${selectedMeta?.badgeBorder}`}>
-                  {selectedMeta?.badgeLabel}
-                </span>
-
-                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-lg font-extrabold">
-                  Certeza Causal: {Math.round(selectedArticle.confidence_score * 100)}%
-                </span>
-              </div>
-
-              {/* Explicación Causal Completa */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center space-x-1.5">
-                  {selectedMeta?.type === 'BAJA' ? (
-                    <TrendingDown className="w-4 h-4 text-emerald-600" />
-                  ) : selectedMeta?.type === 'TENDENCIA' ? (
-                    <Compass className="w-4 h-4 text-sky-600" />
-                  ) : (
-                    <TrendingUp className="w-4 h-4 text-red-600" />
-                  )}
-                  <span>{selectedMeta?.mechanismTitle || 'Mecanismo de Transmisión Económica'}</span>
-                </h4>
-                <p className="text-sm text-stone-800 dark:text-stone-200 leading-relaxed bg-stone-50 dark:bg-stone-850 p-4 rounded-2xl border border-stone-200 dark:border-stone-700">
-                  {selectedArticle.transmission_mechanism}
-                </p>
-              </div>
-
-              {/* Productos Involucrados */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 dark:text-stone-400">
-                  {selectedMeta?.productsTitle || 'Productos Involucrados'}
-                </h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {(selectedArticle.affected_products || []).map((p) => (
-                    <span
-                      key={p}
-                      className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-lg"
-                    >
-                      {p}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Recomendación Sentinela */}
-              <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-4 text-emerald-950 dark:text-emerald-100 text-sm leading-relaxed flex items-start space-x-3">
-                <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-extrabold text-emerald-800 dark:text-emerald-300 block mb-0.5">
-                    {selectedMeta?.adviceTitle || 'Estrategia Recomendada al Consumidor:'}
-                  </span>
-                  {(selectedArticle.consumer_advice || '').replace('💡 Consejo Sentinela: ', '')}
-                </div>
-              </div>
-
-              {/* Pie del modal con enlace a la fuente y botón Instagram */}
-              <div className="flex items-center justify-between pt-4 border-t border-stone-100 dark:border-stone-800">
-                <div className="text-xs text-stone-500 dark:text-stone-400">
-                  <span>Fuente Oficial: </span>
-                  <span className="font-bold text-stone-800 dark:text-stone-200">{selectedArticle.source_name}</span>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => {
-                      setInstagramArticle(selectedArticle);
-                      setSelectedArticle(null);
-                    }}
-                    className="inline-flex items-center space-x-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 dark:text-pink-400 bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-800/60 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
-                  >
-                    <Instagram className="w-3.5 h-3.5" />
-                    <span>Story 9:16</span>
-                  </button>
-
-                  {selectedArticle.source_url && (
-                    <a
-                      href={selectedArticle.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
-                    >
-                      <span>Ver boletín oficial</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Modal Creador y Exportador de Instagram Stories (9:16) */}
-      {instagramArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="bg-white dark:bg-stone-900 rounded-3xl max-w-4xl w-full border border-stone-200 dark:border-stone-800 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[95vh]">
-            {/* Cabecera del Modal */}
-            <div className="px-6 py-4 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between bg-stone-50/70 dark:bg-stone-850/70 shrink-0">
-              <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-pink-500/25">
-                  <Instagram className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-stone-900 dark:text-white flex items-center space-x-2">
-                    <span>Generador de Publicaciones Instagram</span>
-                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-pink-100 dark:bg-pink-950/80 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-800">
-                      Formato 9:16 (Story / Reel)
-                    </span>
-                  </h3>
-                  <p className="text-xs text-stone-500 dark:text-stone-400">
-                    Diseños verticales optimizados listos para descargar y compartir.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setInstagramArticle(null)}
-                className="p-2 rounded-full hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-500 transition-colors cursor-pointer"
-                aria-label="Cerrar modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Contenido en 2 columnas: Vista previa 9:16 + Opciones de Exportación */}
-            <div className="p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              {/* Columna Izquierda: Mockup Smartphone 9:16 */}
-              <div className="lg:col-span-6 flex flex-col items-center justify-center">
-                {/* Selector de plantilla */}
-                <div className="flex items-center space-x-2 mb-3 bg-stone-100 dark:bg-stone-800 p-1 rounded-2xl w-full max-w-[300px]">
-                  <button
-                    onClick={() => setStoryDesignMode('editorial')}
-                    className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      storyDesignMode === 'editorial'
-                        ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-xs font-black'
-                        : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
-                    }`}
-                  >
-                    🎨 Arte 3D Editorial
-                  </button>
-                  <button
-                    onClick={() => setStoryDesignMode('canvas')}
-                    className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      storyDesignMode === 'canvas'
-                        ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-xs font-black'
-                        : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
-                    }`}
-                  >
-                    ⚡ Infografía Dinámica
-                  </button>
-                </div>
-
-                {/* Marco de Smartphone 9:16 */}
-                <div className="relative w-[280px] sm:w-[300px] aspect-[9/16] rounded-[36px] overflow-hidden border-4 border-stone-800 dark:border-stone-700 shadow-2xl bg-black flex flex-col select-none">
-                  {storyDesignMode === 'editorial' ? (
-                    /* Plantilla Editorial 3D Generada */
-                    <div className="relative w-full h-full">
-                      <img
-                        src={getEditorialStoryImage(instagramArticle)}
-                        alt={instagramArticle.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    /* Plantilla Dinámica Canvas en DOM */
-                    <div className="relative w-full h-full p-4 flex flex-col justify-between text-white overflow-hidden bg-gradient-to-b from-stone-950 via-stone-900 to-black">
-                      {/* Fondo con foto difuminada del tema */}
-                      <img
-                        src={getImage(instagramArticle)}
-                        alt={instagramArticle.title}
-                        className="absolute inset-0 w-full h-full object-cover opacity-25 filter blur-xs"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/80 pointer-events-none" />
-
-                      {/* Header */}
-                      <div className="relative z-10 space-y-2 pt-2 text-center">
-                        <div className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
-                          🛡️ AGENTE SENTINELA · OFERTIS
-                        </div>
-                        <div className="inline-block">
-                          <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-md ${
-                            (instagramArticle.trend_direction || '').toUpperCase() === 'BAJA'
-                              ? 'bg-emerald-500 text-white'
-                              : (instagramArticle.trend_direction || '').toUpperCase() === 'TENDENCIA'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-red-600 text-white animate-pulse'
-                          }`}>
-                            {(instagramArticle.trend_direction || '').toUpperCase() === 'BAJA'
-                              ? '🟢 Oportunidad de Ahorro'
-                              : (instagramArticle.trend_direction || '').toUpperCase() === 'TENDENCIA'
-                              ? '🔵 Radar Ciudadano'
-                              : '🔴 Alerta de Alza'}
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-black leading-snug line-clamp-3 text-white pt-1">
-                          {instagramArticle.title}
-                        </h4>
-                      </div>
-
-                      {/* Cuerpo */}
-                      <div className="relative z-10 space-y-2.5 my-auto">
-                        {/* Productos */}
-                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/15">
-                          <div className="text-[9px] font-extrabold text-stone-300 uppercase tracking-wider mb-1">
-                            🛒 Productos en Alerta:
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            {(instagramArticle.affected_products || []).slice(0, 3).map((p) => (
-                              <span key={p} className="text-[9px] font-bold bg-white/20 text-white px-2 py-0.5 rounded-md">
-                                {p}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Fechas */}
-                        {(() => {
-                          const w = getPriceHikeWindow(instagramArticle.date, instagramArticle.lag_days_min, instagramArticle.lag_days_max);
-                          const m = getDirectionMeta(instagramArticle.trend_direction);
-                          return (
-                            <div className="bg-amber-500/20 backdrop-blur-md rounded-2xl p-2.5 border border-amber-500/40 text-amber-200">
-                              <div className="text-[9px] font-black uppercase tracking-wider">
-                                📅 {m.datesPrefix}:
-                              </div>
-                              <div className="text-xs font-black text-white mt-0.5">
-                                {w.rangeText}
-                              </div>
-                              <div className="text-[9px] text-amber-300/80">
-                                Ventana: {w.shortRangeText}
-                              </div>
-                            </div>
-                          );
-                        })()}
-
-                        {/* Consejo */}
-                        <div className="bg-emerald-950/60 backdrop-blur-md rounded-2xl p-2.5 border border-emerald-500/40 text-emerald-100">
-                          <div className="text-[9px] font-black uppercase text-emerald-400">
-                            💡 Consejo Ofertis:
-                          </div>
-                          <p className="text-[10px] leading-snug line-clamp-3 mt-0.5 text-stone-200">
-                            {(instagramArticle.consumer_advice || '').replace('💡 Consejo Sentinela: ', '')}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Footer */}
-                      <div className="relative z-10 text-center pb-2 border-t border-white/15 pt-2">
-                        <div className="text-[11px] font-black text-white">🐾 www.ofertis.cl</div>
-                        <div className="text-[8px] text-stone-400">Anticípate y ahorra en supermercados</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Columna Derecha: Acciones de Descarga y Copiado */}
-              <div className="lg:col-span-6 space-y-5">
-                <div>
-                  <h4 className="text-sm font-black text-stone-900 dark:text-stone-100 uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                    Publicación Lista para Redes
-                  </h4>
-                  <p className="text-xs text-stone-600 dark:text-stone-300 mt-1 leading-relaxed">
-                    Descarga la imagen en alta definición 9:16 (1080x1920 px) para subirla a tus <strong className="text-pink-600 font-bold">Instagram Stories, Reels</strong> o WhatsApp Status, y copia el texto descriptivo con un solo clic.
-                  </p>
-                </div>
-
-                {/* Botones de Descarga */}
-                <div className="space-y-2.5">
-                  {storyDesignMode === 'editorial' ? (
-                    <a
-                      href={getEditorialStoryImage(instagramArticle)}
-                      download={`ofertis_story_${instagramArticle.id || 'noticia'}_9x16.jpg`}
-                      className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-pink-600 via-rose-500 to-amber-500 hover:from-pink-700 hover:to-amber-600 text-white font-black py-3.5 px-5 rounded-2xl text-sm shadow-lg shadow-pink-500/30 transition-all cursor-pointer"
-                    >
-                      <Download className="w-5 h-5" />
-                      <span>Descargar Arte Editorial 9:16 (Ultra HD)</span>
-                    </a>
-                  ) : (
-                    <button
-                      onClick={() => downloadCanvasStory(instagramArticle)}
-                      className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 px-5 rounded-2xl text-sm shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
-                    >
-                      <Download className="w-5 h-5" />
-                      <span>Descargar Gráfico PNG 1080x1920</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      const caption = generateInstagramCaption(instagramArticle);
-                      navigator.clipboard.writeText(caption);
-                      setCopiedCaption(true);
-                      setTimeout(() => setCopiedCaption(false), 2500);
-                    }}
-                    className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl text-xs font-bold border transition-all cursor-pointer ${
-                      copiedCaption
-                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 border-emerald-400'
-                        : 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-750 text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700'
-                    }`}
-                  >
-                    {copiedCaption ? (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-600" />
-                        <span className="font-black">¡Texto copiado al portapapeles!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        <span>Copiar Caption / Texto con Hashtags</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Vista previa del Texto para el post */}
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-stone-400 flex items-center justify-between">
-                    <span>Copy sugerido para Instagram:</span>
-                    <span className="text-[10px] text-emerald-600 font-bold">Hashtags incluidos</span>
-                  </div>
-                  <pre className="text-xs bg-stone-50 dark:bg-stone-850 p-3 rounded-2xl border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-200 font-mono whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
-                    {generateInstagramCaption(instagramArticle)}
-                  </pre>
-                </div>
-
-                {/* Navegar a otras entradas del blog */}
-                {articles.length > 1 && (
-                  <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between">
-                    <span className="text-xs text-stone-500 font-medium">Otras alertas:</span>
-                    <div className="flex items-center space-x-1">
-                      {articles.map((art, idx) => (
-                        <button
-                          key={art.id || idx}
-                          onClick={() => {
-                            setInstagramArticle(art);
-                            setCopiedCaption(false);
-                          }}
-                          className={`w-7 h-7 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            instagramArticle.id === art.id
-                              ? 'bg-pink-600 text-white font-black scale-110 shadow-xs'
-                              : 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
-                          }`}
-                        >
-                          {idx + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {renderInstagramModal()}
     </div>
   );
 };
