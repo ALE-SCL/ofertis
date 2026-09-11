@@ -107,7 +107,7 @@ async def generate_news_pipeline(
     3. Retorna el estado y los artículos disponibles inmediatamente.
     """
     import asyncio
-    from scripts.generar_noticias import execute_full_pipeline
+    from app.services.pipeline_service import execute_full_pipeline
 
     result = await asyncio.to_thread(execute_full_pipeline, is_sample=sample, simulate=simulate)
     if not result.get("success"):

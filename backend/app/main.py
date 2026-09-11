@@ -1,6 +1,16 @@
+import os
+import sys
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+
+# Resolver rutas para entornos de despliegue (Render, Docker, Local)
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+_BACKEND_DIR = os.path.dirname(_APP_DIR)
+_REPO_ROOT = os.path.dirname(_BACKEND_DIR)
+for _p in (_REPO_ROOT, _BACKEND_DIR, _APP_DIR):
+    if _p and os.path.exists(_p) and _p not in sys.path:
+        sys.path.insert(0, _p)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

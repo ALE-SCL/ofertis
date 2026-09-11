@@ -728,14 +728,19 @@ export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduc
     setGeneratingNews(true);
     setGenerationMessage('Ejecutando radar Sentinela y redacción con El Cronista...');
     try {
-      await axios.post(`${API_BASE_URL}/sentinela/generate`);
-      setGenerationMessage('¡Nuevas noticias redactadas y publicadas con éxito!');
-      await fetchData();
-      setTimeout(() => setGenerationMessage(null), 5000);
-    } catch (err) {
+      const res = await axios.post(`${API_BASE_URL}/sentinela/generate`, {}, { timeout: 45000 });
+      if (res.data?.success) {
+        setGenerationMessage('¡Nuevas noticias redactadas y publicadas con éxito!');
+        await fetchData();
+      } else {
+        setGenerationMessage('Aviso: ' + (res.data?.message || 'No se pudieron generar noticias.'));
+      }
+      setTimeout(() => setGenerationMessage(null), 6000);
+    } catch (err: any) {
       console.error('Error generando noticias bajo demanda:', err);
-      setGenerationMessage('Aviso: Se intentó generar noticias pero ocurrió una demora o error.');
-      setTimeout(() => setGenerationMessage(null), 5000);
+      const detail = err.response?.data?.detail || err.message || 'Demora o error en el servidor.';
+      setGenerationMessage(`Aviso: ${detail}`);
+      setTimeout(() => setGenerationMessage(null), 6000);
     } finally {
       setGeneratingNews(false);
     }
