@@ -5,7 +5,7 @@ from app.core.config import settings
 
 # Engine asíncrono para PostgreSQL
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    settings.async_database_url,
     echo=(settings.LOG_LEVEL.upper() == "DEBUG"),
     future=True,
     pool_size=10,
