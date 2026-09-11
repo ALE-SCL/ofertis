@@ -37,14 +37,3 @@ class UserAlertResponse(BaseModel):
     is_active: bool
     last_triggered_at: Optional[datetime] = None
     created_at: datetime
-
-
-class NotificationTriggerPayload(BaseModel):
-    alert_id: int
-    recipient_phone: str
-    product_name: str
-    best_supermarket: str
-    offer_price: Decimal
-    unit_price: Decimal
-    standard_unit: str
-    product_url: str

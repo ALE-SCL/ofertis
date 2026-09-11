@@ -1,9 +1,2 @@
-from app.services.vector_service import VectorService
-from app.services.product_service import ProductService
-from app.services.alert_service import AlertService
+"""Servicios de lógica de negocio y conectores de datos de Ofertis."""
 
-__all__ = [
-    "VectorService",
-    "ProductService",
-    "AlertService",
-]

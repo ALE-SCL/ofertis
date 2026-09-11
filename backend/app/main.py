@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -10,6 +11,7 @@ from app.api.v1.alerts import router as alerts_router
 from app.api.v1.mining import router as mining_router
 from app.api.v1.radar import router as radar_router
 from app.api.v1.sentinela import router as sentinela_router
+from app.api.v1.cronista import router as cronista_router
 
 # Configuración de Logging estructurado
 logging.basicConfig(
@@ -89,6 +91,7 @@ app.include_router(alerts_router, prefix="/api/v1")
 app.include_router(mining_router, prefix="/api/v1")
 app.include_router(radar_router, prefix="/api/v1")
 app.include_router(sentinela_router, prefix="/api/v1")
+app.include_router(cronista_router, prefix="/api/v1")
 
 # Montar directorio estático para servir carruseles de redes sociales e imágenes
 import os

@@ -6,9 +6,12 @@ import time
 from datetime import datetime
 
 from .config import REPORTS_DIR
+from .models.alternative_models import AlternativeProduct, AlternativeStoreType
 from .scrapers.elcarnicero_scraper import ElCarniceroScraper
 from .scrapers.acuenta_scraper import AcuentaScraper
 from .scrapers.lovalledor_scraper import LoValledorScraper
+from .scrapers.dona_carne_scraper import DonaCarneScraperAdapter
+from .scrapers.wholesale_distributors_scraper import WholesaleDistributorsAdapter
 from .engine.opportunity_detector import OpportunityDetector
 from .generator.radar_reporter import RadarReporter
 
@@ -47,6 +50,54 @@ def run_radar(print_console: bool = True, save_reports: bool = True):
         logger.info(f"Lo Valledor: {len(mayoristas)} productos mayoristas cargados.")
     except Exception as e:
         logger.warning(f"Error en Lo Valledor: {e}")
+
+    # 4. Doña Carne (Carnicería Directa - Shopify API & Catálogo)
+    dona_carne = DonaCarneScraperAdapter()
+    try:
+        dc_items = dona_carne.fetch_products()
+        for it in dc_items:
+            all_products.append(
+                AlternativeProduct(
+                    sku=it["sku"],
+                    store_id=it["store_id"],
+                    store_name=it["store_name"],
+                    store_type=AlternativeStoreType.CARNICERIA_DIRECTA,
+                    title=it["product_name"],
+                    category="carne_vacuno" if "vacuno" in it["product_name"].lower() else "carnes",
+                    price=float(it["price"]),
+                    unit_type=it.get("unit", "kg"),
+                    price_per_kg_or_unit=float(it.get("unit_price", it["price"])),
+                    product_url=it["purchase_url"],
+                    is_wholesale_pack=it.get("is_wholesale", False)
+                )
+            )
+        logger.info(f"Doña Carne: {len(dc_items)} productos cárnicos procesados.")
+    except Exception as e:
+        logger.warning(f"Error en Doña Carne: {e}")
+
+    # 5. Distribuidores y Cadenas Mayoristas (Alvi, Central Mayorista, Comercial Castro, etc.)
+    wholesale_adapter = WholesaleDistributorsAdapter()
+    try:
+        ws_items = wholesale_adapter.fetch_verified_opportunities()
+        for it in ws_items:
+            all_products.append(
+                AlternativeProduct(
+                    sku=it["sku"],
+                    store_id=it["store_id"],
+                    store_name=it["store_name"],
+                    store_type=AlternativeStoreType.SUPERMERCADO_MAYORISTA,
+                    title=it["product_name"],
+                    category=it.get("category", "despensa"),
+                    price=float(it["price"]),
+                    unit_type=it.get("unit", "pack"),
+                    price_per_kg_or_unit=float(it.get("unit_price", it["price"])),
+                    product_url=it["purchase_url"],
+                    is_wholesale_pack=it.get("is_wholesale", True)
+                )
+            )
+        logger.info(f"Distribuidores Mayoristas: {len(ws_items)} productos cargados.")
+    except Exception as e:
+        logger.warning(f"Error en Distribuidores Mayoristas: {e}")
 
     logger.info(f"Total productos en canales alternativos escaneados: {len(all_products)}")
 

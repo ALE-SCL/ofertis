@@ -1143,3 +1143,33 @@ class RadarService:
             logger.error(f"Error calculando KPIs de Radar en BD ({e}). Usando fallback.")
             return cls.get_kpis()
 
+    @classmethod
+    async def get_item_price_history_async(cls, db: AsyncSession, item_sku: str) -> List[Dict[str, Any]]:
+        """
+        Retorna la serie cronológica de precios de un producto alternativo desde AlternativePriceRecord.
+        """
+        try:
+            from app.models.alternative_price_record import AlternativePriceRecord
+            stmt = (
+                select(AlternativePriceRecord, AlternativeItem)
+                .join(AlternativeItem, AlternativePriceRecord.item_id == AlternativeItem.id)
+                .where(AlternativeItem.sku == item_sku)
+                .order_by(AlternativePriceRecord.recorded_at.asc())
+            )
+            res = await db.execute(stmt)
+            rows = res.all()
+            return [
+                {
+                    "recorded_at": r[0].recorded_at.strftime("%Y-%m-%d"),
+                    "current_price": float(r[0].current_price),
+                    "unit_price_normalized": float(r[0].unit_price_normalized),
+                    "traditional_benchmark_price": float(r[0].traditional_benchmark_price),
+                    "savings_clp": float(r[0].savings_clp),
+                    "savings_percentage": float(r[0].savings_percentage)
+                }
+                for r in rows
+            ]
+        except Exception as e:
+            logger.error(f"Error consultando historial de precios para SKU {item_sku}: {e}")
+            return []
+

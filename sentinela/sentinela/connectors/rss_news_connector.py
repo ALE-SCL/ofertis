@@ -2,6 +2,7 @@ import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
 import logging
+import re
 from typing import List, Optional
 from datetime import datetime
 
@@ -66,7 +67,7 @@ class RssNewsConnector:
         try:
             req = urllib.request.Request(
                 url,
-                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Sentinela-News/2.0"}
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"}
             )
             with urllib.request.urlopen(req, timeout=10) as response:
                 content = response.read()
@@ -93,15 +94,23 @@ class RssNewsConnector:
             logger.warning(f"Error consultando canal RSS '{query}': {e}")
         return items
 
-    def extract_supply_chain_events(self) -> List[MarketEvent]:
+    def extract_supply_chain_events(self, raw_items: Optional[List[dict]] = None) -> List[MarketEvent]:
         events: List[MarketEvent] = []
         seen_titles = set()
 
-        for ch in RSS_SEARCH_CHANNELS:
-            raw_items = self.fetch_channel_items(ch["query"])
-            logger.info(f"RssNewsConnector: {len(raw_items)} noticias del canal '{ch['channel']}'.")
+        channels_to_process = (
+            [{"channel": "Canal Externo", "items": raw_items}]
+            if raw_items is not None
+            else [{"channel": ch["channel"], "items": self.fetch_channel_items(ch["query"])} for ch in RSS_SEARCH_CHANNELS]
+        )
 
-            for idx, item in enumerate(raw_items[:5]):  # 5 noticias más recientes por canal
+        for ch_data in channels_to_process:
+            ch_name = ch_data["channel"]
+            items_list = ch_data["items"]
+            if raw_items is None:
+                logger.info(f"RssNewsConnector: {len(items_list)} noticias del canal '{ch_name}'.")
+
+            for idx, item in enumerate(items_list if raw_items is not None else items_list[:5]):  # 5 noticias más recientes por canal
                 title = item.get("title", "")
                 title_lower = title.lower()
 
@@ -126,7 +135,7 @@ class RssNewsConnector:
                         event_type = "HARVEST_GLUT"
 
                 # 2. Temas de Interés y Guías Ciudadanas
-                elif any(k in title_lower for k in ["ipc", "ine", "inflación de alimentos", "costo de la vida"]):
+                elif bool(re.search(r'\b(ipc|ine)\b', title_lower)) or any(k in title_lower for k in ["inflación de alimentos", "costo de la vida"]):
                     event_type = "IPC_FOOD_REPORT"
                 elif any(k in title_lower for k in ["legumbres", "sustituto", "proteína económica", "jurel"]):
                     event_type = "NUTRITIONAL_SAVINGS_GUIDE"
@@ -169,7 +178,7 @@ class RssNewsConnector:
                             url=item.get("link"),
                             credibility_score=0.90
                         ),
-                        raw_metrics={"original_pubdate": item.get("pubDate"), "channel": ch["channel"]}
+                        raw_metrics={"original_pubdate": item.get("pubDate"), "channel": ch_name}
                     )
                     events.append(event)
 

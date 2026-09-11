@@ -4,17 +4,6 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class PriceRecordSchema(BaseModel):
-    id: int
-    normal_price: Decimal
-    offer_price: Optional[Decimal] = None
-    unit_price_normalized: Decimal # $/kg o $/L
-    is_offer: bool
-    recorded_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class SupermarketItemComparison(BaseModel):
     id: int
     supermarket_id: int
@@ -80,10 +69,3 @@ class ProductSearchResult(BaseModel):
     available_supermarkets: List[str]
     similarity_score: Optional[float] = None
     image_url: Optional[str] = None
-
-
-class SearchQueryRequest(BaseModel):
-    query: str = Field(..., min_length=2, max_length=100, description="Texto de búsqueda o corte/producto")
-    category: Optional[str] = None
-    supermarkets: Optional[List[str]] = None
-    limit: int = Field(default=15, ge=1, le=50)

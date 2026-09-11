@@ -42,3 +42,14 @@ async def get_radar_kpis(
     """
     return await RadarService.get_kpis_async(db=db)
 
+
+@router.get("/items/{sku}/history")
+async def get_radar_item_price_history(
+    sku: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Retorna el historial de precios y ahorros para un SKU de canal alternativo o mayorista.
+    """
+    return await RadarService.get_item_price_history_async(db=db, item_sku=sku)
+

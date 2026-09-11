@@ -1,7 +1,15 @@
 import os
 from typing import List
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+try:
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+    from pydantic import Field
+except ImportError:
+    class BaseSettings:
+        pass
+    def SettingsConfigDict(**kwargs):
+        return kwargs
+    def Field(default=None, **kwargs):
+        return default
 
 
 class Settings(BaseSettings):

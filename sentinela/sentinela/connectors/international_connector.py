@@ -54,7 +54,7 @@ class InternationalMarketConnector:
         try:
             req = urllib.request.Request(
                 feed_url,
-                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Sentinela-Global/2.0"}
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"}
             )
             with urllib.request.urlopen(req, timeout=10) as response:
                 content = response.read()

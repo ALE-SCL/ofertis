@@ -720,6 +720,26 @@ export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduc
   const [instagramArticle, setInstagramArticle] = useState<SentinelaArticle | null>(null);
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [storyDesignMode, setStoryDesignMode] = useState<'editorial' | 'canvas'>('editorial');
+  const [generatingNews, setGeneratingNews] = useState<boolean>(false);
+  const [generationMessage, setGenerationMessage] = useState<string | null>(null);
+
+  const handleGenerateNews = async () => {
+    if (generatingNews) return;
+    setGeneratingNews(true);
+    setGenerationMessage('Ejecutando radar Sentinela y redacción con El Cronista...');
+    try {
+      await axios.post(`${API_BASE_URL}/sentinela/generate`);
+      setGenerationMessage('¡Nuevas noticias redactadas y publicadas con éxito!');
+      await fetchData();
+      setTimeout(() => setGenerationMessage(null), 5000);
+    } catch (err) {
+      console.error('Error generando noticias bajo demanda:', err);
+      setGenerationMessage('Aviso: Se intentó generar noticias pero ocurrió una demora o error.');
+      setTimeout(() => setGenerationMessage(null), 5000);
+    } finally {
+      setGeneratingNews(false);
+    }
+  };
 
   // Navegación de Landing Page con sincronización de URL (?article=...)
   const handleSelectArticle = (art: SentinelaArticle | null) => {
@@ -1123,6 +1143,15 @@ export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduc
           {/* Barra de Acciones Globales */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
+              onClick={handleGenerateNews}
+              disabled={generatingNews}
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 hover:from-emerald-700 hover:to-cyan-800 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-md shadow-emerald-600/25 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              title="Dispara el escaneo en vivo de Sentinela y la redacción de nuevos artículos con El Cronista"
+            >
+              <Sparkles className={`w-4 h-4 ${generatingNews ? 'animate-spin text-amber-300' : ''}`} />
+              <span>{generatingNews ? 'Generando Noticias...' : '⚡ Generar Noticias'}</span>
+            </button>
+            <button
               onClick={() => setInstagramArticle(featuredArticle || articles[0])}
               className="inline-flex items-center space-x-2 bg-gradient-to-r from-pink-600 via-rose-500 to-amber-500 hover:from-pink-700 hover:to-amber-600 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-md shadow-pink-500/25 transition-all cursor-pointer"
             >
@@ -1137,6 +1166,14 @@ export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduc
               <span>Actualizar Alertas</span>
             </button>
           </div>
+
+          {/* Banner de Estado de Generación Bajo Demanda */}
+          {generationMessage && (
+            <div className="mt-3 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 text-xs flex items-center space-x-2 animate-fadeIn">
+              <Sparkles className={`w-4 h-4 text-emerald-600 dark:text-emerald-400 ${generatingNews ? 'animate-spin' : ''}`} />
+              <span className="font-semibold">{generationMessage}</span>
+            </div>
+          )}
         </div>
       </div>
 

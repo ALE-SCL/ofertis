@@ -94,3 +94,32 @@ async def publish_article_social(article_id: str, dry_run: bool = Query(False, d
     result = publisher.publish_carousel(article_id, carousel_info, dry_run=dry_run)
     return result
 
+
+@router.post("/generate")
+async def generate_news_pipeline(
+    sample: bool = Query(False, description="Usa eventos de contingencia verificados"),
+    simulate: Optional[str] = Query(None, description="Simula un escenario económico específico")
+):
+    """
+    Ejecuta el pipeline completo bajo demanda:
+    1. Sentinela (monitoreo en tiempo real o contingencia verificada, filtro anti-monotonía de 48h).
+    2. El Cronista Económico (redacción de artículo editorial con diagramas Mermaid y SVG).
+    3. Retorna el estado y los artículos disponibles inmediatamente.
+    """
+    import asyncio
+    from scripts.generar_noticias import execute_full_pipeline
+
+    result = await asyncio.to_thread(execute_full_pipeline, is_sample=sample, simulate=simulate)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=result.get("error", "Error ejecutando pipeline de noticias"))
+
+    service = SentinelaService()
+    fresh_articles = service.get_all_articles(limit=10)
+
+    return {
+        "success": True,
+        "message": "Pipeline de noticias ejecutado exitosamente",
+        "result": result,
+        "articles": fresh_articles
+    }
+

@@ -2,7 +2,6 @@ import logging
 from typing import List, Optional
 from decimal import Decimal
 from app.scrapers.base_scraper import BaseScraperAdapter, RawScrapedProduct
-from app.skills.scraping_skill import ScrapingSkill
 
 logger = logging.getLogger("ofertis.scrapers.lider")
 
@@ -16,7 +15,6 @@ class LiderScraperAdapter(BaseScraperAdapter):
         self._slug = "lider"
         self._name = "Lider (Walmart)"
         self._base_domain = "https://www.lider.cl"
-        self.skill = ScrapingSkill()
 
     @property
     def supermarket_slug(self) -> str:

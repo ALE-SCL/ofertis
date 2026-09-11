@@ -23,7 +23,7 @@ class BancoCentralConnector:
         try:
             req = urllib.request.Request(
                 self.api_url,
-                headers={"User-Agent": "Sentinela-Chile/1.0 (Food-Price-Early-Warning)"}
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"}
             )
             with urllib.request.urlopen(req, timeout=12) as response:
                 data = json.loads(response.read().decode("utf-8"))

@@ -1,6 +1,6 @@
 import logging
+import math
 from typing import List, Optional
-import numpy as np
 from app.core.config import settings
 
 logger = logging.getLogger("ofertis.vector_service")
@@ -49,26 +49,57 @@ class VectorService:
             except Exception as e:
                 logger.error(f"Error generando embedding con SentenceTransformer: {e}")
 
-        # Fallback determinista para pruebas si no hay torch disponible
+        # Fallback determinista semántico basado en Bag-of-Subwords & N-grams (hashing trick)
+        # Permite correlación semántica real sin requerir modelos pesados en RAM
         import hashlib
-        seed = int(hashlib.sha256(text.encode("utf-8")).hexdigest()[:8], 16)
-        rng = np.random.default_rng(seed)
-        vec = rng.standard_normal(settings.EMBEDDING_DIMENSION)
-        norm = np.linalg.norm(vec)
+        import math
+        import re
+
+        dim = settings.EMBEDDING_DIMENSION
+        cleaned = re.sub(r"[^\w\s]", " ", text.lower()).strip()
+        words = [w for w in cleaned.split() if w]
+        vec = [0.0] * dim
+
+        tokens = []
+        for w in words:
+            tokens.append((w, 2.5))
+        for i in range(len(words) - 1):
+            tokens.append((f"{words[i]}_{words[i+1]}", 1.8))
+        for w in words:
+            pad_w = f"<{w}>"
+            for i in range(len(pad_w) - 2):
+                tokens.append((pad_w[i:i+3], 0.8))
+
+        for token, weight in tokens:
+            h = int(hashlib.md5(token.encode("utf-8")).hexdigest()[:8], 16)
+            idx = h % dim
+            sign = 1.0 if (h >> 15) & 1 else -1.0
+            vec[idx] += sign * weight
+
+        norm = math.sqrt(sum(x * x for x in vec))
         if norm > 0:
-            vec = vec / norm
-        return vec.tolist()
+            vec = [x / norm for x in vec]
+        return vec
 
     @staticmethod
     def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
         """
         Calcula la similitud de coseno entre dos vectores normalizados (valor entre -1.0 y 1.0).
         """
-        a = np.array(vec_a)
-        b = np.array(vec_b)
-        dot_product = np.dot(a, b)
-        norm_a = np.linalg.norm(a)
-        norm_b = np.linalg.norm(b)
-        if norm_a == 0 or norm_b == 0:
-            return 0.0
-        return float(dot_product / (norm_a * norm_b))
+        try:
+            import numpy as np
+            a = np.array(vec_a)
+            b = np.array(vec_b)
+            dot_product = np.dot(a, b)
+            norm_a = np.linalg.norm(a)
+            norm_b = np.linalg.norm(b)
+            if norm_a == 0 or norm_b == 0:
+                return 0.0
+            return float(dot_product / (norm_a * norm_b))
+        except ImportError:
+            dot_product = sum(x * y for x, y in zip(vec_a, vec_b))
+            norm_a = math.sqrt(sum(x * x for x in vec_a))
+            norm_b = math.sqrt(sum(y * y for y in vec_b))
+            if norm_a == 0 or norm_b == 0:
+                return 0.0
+            return float(dot_product / (norm_a * norm_b))
