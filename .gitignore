@@ -55,6 +55,7 @@ postgres_data/
 redis_data/
 *.sqlite3
 *.db
+scripts/data/*.json
 
 # macOS System Files
 .DS_Store

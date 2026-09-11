@@ -1,4 +1,5 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -90,43 +91,191 @@ async def trigger_daily_sync(
     return {
         "status": "success",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "seed_items_updated": seed_updated,
-        "mining_cycle": cycle_res.get("summary", {})
+        "items_populated_or_updated": updated_count,
+        "total_canonical_products": total_canonical,
+        "total_supermarket_items": total_items,
+        "mining_summary": mining_summary
     }
 
 
-@router.post("/populate-expanded")
-async def populate_expanded_catalog(
-    mine_live: bool = False,
+class ImportItemPayload(BaseModel):
+    supermarket_slug: str
+    sku: str
+    store_title: str
+    brand_extracted: Optional[str] = None
+    product_url: str = ""
+    image_url: Optional[str] = None
+    package_quantity: float = 1.0
+    package_unit: str = "un"
+    is_available: bool = True
+    normal_price: float
+    offer_price: Optional[float] = None
+    unit_price_normalized: float
+    is_offer: bool = False
+
+
+class ImportProductPayload(BaseModel):
+    name: str
+    category: str
+    subcategory: Optional[str] = None
+    brand: Optional[str] = None
+    standard_unit: str = "kg"
+    description: Optional[str] = None
+    embedding: Optional[List[float]] = None
+    items: List[ImportItemPayload] = []
+
+
+class ImportBatchRequest(BaseModel):
+    batch_index: int = 0
+    total_batches: int = 1
+    products: List[ImportProductPayload]
+
+
+@router.post("/import-batch")
+async def import_catalog_batch(
+    payload: ImportBatchRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Puebla la base de datos de producción con el catálogo expandido:
-    1. Inserta o actualiza todos los productos canónicos de la canasta chilena y sus ofertas retail verificadas.
-    2. Si 'mine_live' es True, ejecuta además un ciclo de recolección en vivo para expandir el inventario.
+    Importa de manera atómica, idempotente y eficiente un lote de productos canónicos
+    con sus respectivas ofertas de supermercados y precios normalizados.
+    Diseñado para sincronización de alto rendimiento entre entornos (Dev -> Prod).
     """
-    from datetime import datetime, timezone
+    from decimal import Decimal
     from sqlalchemy import func
-    from app.services.seed_service import sync_or_update_seed_prices
+    from app.models.price_record import PriceRecord
+    from app.services.vector_service import VectorService
 
-    updated_count = await sync_or_update_seed_prices(db)
+    # 1. Mapa de supermercados
+    res_supers = await db.execute(select(Supermarket))
+    super_map = {s.slug.lower(): s.id for s in res_supers.scalars().all()}
 
-    mining_summary = None
-    if mine_live:
-        from app.agents.orchestrator import MultiAgentOrchestrator
-        orchestrator = MultiAgentOrchestrator(db)
-        cycle_res = await orchestrator.execute_full_cycle(limit_per_query=4)
-        mining_summary = cycle_res.get("summary", {})
+    canonical_created = 0
+    canonical_updated = 0
+    items_created = 0
+    items_updated = 0
+
+    for prod_data in payload.products:
+        # Buscar entidad canónica
+        stmt_c = select(CanonicalProduct).where(
+            func.lower(CanonicalProduct.name) == prod_data.name.strip().lower(),
+            CanonicalProduct.category == prod_data.category
+        )
+        canon = (await db.execute(stmt_c)).scalar_one_or_none()
+
+        embedding = prod_data.embedding
+        if not embedding:
+            emb_text = f"{prod_data.name} {prod_data.category} {prod_data.brand or ''} {prod_data.description or ''}"
+            embedding = VectorService.generate_embedding(emb_text)
+
+        if not canon:
+            canon = CanonicalProduct(
+                name=prod_data.name.strip(),
+                category=prod_data.category,
+                subcategory=prod_data.subcategory,
+                brand=prod_data.brand,
+                standard_unit=prod_data.standard_unit or "kg",
+                description=prod_data.description,
+                embedding=embedding
+            )
+            db.add(canon)
+            await db.flush()
+            canonical_created += 1
+        else:
+            if prod_data.subcategory:
+                canon.subcategory = prod_data.subcategory
+            if prod_data.brand:
+                canon.brand = prod_data.brand
+            if prod_data.description:
+                canon.description = prod_data.description
+            if embedding and not canon.embedding:
+                canon.embedding = embedding
+            canonical_updated += 1
+
+        # Procesar items asociados
+        for item_data in prod_data.items:
+            super_slug = item_data.supermarket_slug.lower()
+            super_id = super_map.get(super_slug)
+            if not super_id:
+                continue
+
+            stmt_i = select(SupermarketItem).where(
+                SupermarketItem.supermarket_id == super_id,
+                SupermarketItem.sku == item_data.sku
+            )
+            item_obj = (await db.execute(stmt_i)).scalar_one_or_none()
+
+            pkg_qty = Decimal(str(round(item_data.package_quantity, 3)))
+            norm_price = Decimal(str(round(item_data.normal_price, 2)))
+            off_price = Decimal(str(round(item_data.offer_price, 2))) if item_data.offer_price is not None else None
+            unit_norm = Decimal(str(round(item_data.unit_price_normalized, 2)))
+
+            if not item_obj:
+                item_obj = SupermarketItem(
+                    canonical_id=canon.id,
+                    supermarket_id=super_id,
+                    sku=item_data.sku,
+                    store_title=item_data.store_title,
+                    brand_extracted=item_data.brand_extracted,
+                    product_url=item_data.product_url or "",
+                    image_url=item_data.image_url,
+                    package_quantity=pkg_qty,
+                    package_unit=item_data.package_unit or "un",
+                    is_available=item_data.is_available
+                )
+                db.add(item_obj)
+                await db.flush()
+                items_created += 1
+            else:
+                item_obj.canonical_id = canon.id
+                item_obj.store_title = item_data.store_title
+                if item_data.brand_extracted:
+                    item_obj.brand_extracted = item_data.brand_extracted
+                if item_data.image_url:
+                    item_obj.image_url = item_data.image_url
+                if item_data.product_url:
+                    item_obj.product_url = item_data.product_url
+                item_obj.package_quantity = pkg_qty
+                item_obj.package_unit = item_data.package_unit
+                item_obj.is_available = item_data.is_available
+                items_updated += 1
+
+            # Gestionar PriceRecord
+            stmt_pr = select(PriceRecord).where(
+                PriceRecord.item_id == item_obj.id
+            ).order_by(PriceRecord.recorded_at.desc()).limit(1)
+            latest_pr = (await db.execute(stmt_pr)).scalar_one_or_none()
+
+            if not latest_pr:
+                pr = PriceRecord(
+                    item_id=item_obj.id,
+                    normal_price=norm_price,
+                    offer_price=off_price,
+                    unit_price_normalized=unit_norm,
+                    is_offer=item_data.is_offer
+                )
+                db.add(pr)
+            else:
+                latest_pr.normal_price = norm_price
+                latest_pr.offer_price = off_price
+                latest_pr.unit_price_normalized = unit_norm
+                latest_pr.is_offer = item_data.is_offer
+
+    await db.commit()
 
     total_canonical = await db.scalar(select(func.count(CanonicalProduct.id)))
     total_items = await db.scalar(select(func.count(SupermarketItem.id)))
 
     return {
         "status": "success",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "items_populated_or_updated": updated_count,
+        "batch_index": payload.batch_index,
+        "total_batches": payload.total_batches,
+        "canonical_created": canonical_created,
+        "canonical_updated": canonical_updated,
+        "items_created": items_created,
+        "items_updated": items_updated,
         "total_canonical_products": total_canonical,
-        "total_supermarket_items": total_items,
-        "mining_summary": mining_summary
+        "total_supermarket_items": total_items
     }
+
 

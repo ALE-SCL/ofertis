@@ -51,6 +51,30 @@ class TestOfertisAgents(unittest.TestCase):
         self.assertEqual(norm.unit_price_normalized, Decimal("8000"))
         self.assertTrue(norm.is_offer)
 
+    def test_harvester_targets_coverage(self):
+        from app.agents.harvester_agent import HarvesterAgent
+        all_targets = HarvesterAgent.get_all_catalog_targets()
+        self.assertGreaterEqual(len(all_targets), 80)
+        
+        categories = {t["category"] for t in all_targets}
+        # Verificar cobertura de departamentos clave
+        self.assertIn("carne_vacuno", categories)
+        self.assertIn("arroz", categories)
+        self.assertIn("leche", categories)
+        self.assertIn("verduras", categories)
+        self.assertIn("frutas", categories)
+        self.assertIn("gaseosas", categories)
+        self.assertIn("pan", categories)
+        self.assertIn("limpieza", categories)
+        self.assertIn("congelados", categories)
+        self.assertIn("mascotas", categories)
+
+    def test_harvester_shift_batch(self):
+        from app.agents.harvester_agent import HarvesterAgent
+        batch = HarvesterAgent.get_current_shift_batch()
+        self.assertIsInstance(batch, list)
+        self.assertGreater(len(batch), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
