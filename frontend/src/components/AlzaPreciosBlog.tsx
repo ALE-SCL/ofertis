@@ -22,6 +22,7 @@ import {
   Instagram,
   Download,
   Copy,
+  Check,
 } from 'lucide-react';
 import { SentinelaArticle, SentinelaStats } from '../types';
 import { API_BASE_URL } from '../config/api';
@@ -836,6 +837,10 @@ export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduc
 
   // Artículo destacado: el primero de severidad ALTA, o el más reciente
   const featuredArticle = filteredArticles.find((a) => a.severity === 'ALTA') || filteredArticles[0];
+  const featuredMeta = featuredArticle ? getDirectionMeta(featuredArticle.trend_direction) : null;
+  const featuredHikeWindow = featuredArticle
+    ? getPriceHikeWindow(featuredArticle.date, featuredArticle.lag_days_min, featuredArticle.lag_days_max)
+    : null;
   const gridArticles = filteredArticles.filter((a) => a !== featuredArticle);
 
   // Renderizador del Modal de Instagram Stories (compartido entre blog y landing page)
@@ -845,8 +850,9 @@ export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduc
     const exportArticle = instagramArticle;
     const exportThemeKey = getArticleThemeKey(exportArticle);
     const pool = THEMATIC_IMAGE_POOLS[exportThemeKey] || THEMATIC_IMAGE_POOLS.frutas_y_verduras;
-    const exportImage = (exportArticle.id && articleImageMap.get(exportArticle.id)) || pool[0];
-    const exportMeta = getDirectionMeta(exportArticle.trend_direction);
+    const exportImage = storyDesignMode === 'editorial'
+      ? getEditorialStoryImage(exportArticle)
+      : ((exportArticle.id && articleImageMap.get(exportArticle.id)) || pool[0]);
     const exportWindow = getPriceHikeWindow(exportArticle.date, exportArticle.lag_days_min, exportArticle.lag_days_max);
 
     return (
@@ -1006,7 +1012,7 @@ export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduc
               {/* Botones de Descarga */}
               <div className="space-y-3 pt-2">
                 <button
-                  onClick={() => exportInstagramStoryPng(exportArticle, exportImage)}
+                  onClick={() => downloadCanvasStory(exportArticle)}
                   className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-pink-600 via-rose-500 to-amber-500 hover:from-pink-700 hover:to-amber-600 text-white font-black py-3.5 px-6 rounded-2xl shadow-lg shadow-pink-500/25 text-sm transition-all cursor-pointer hover:scale-[1.01]"
                 >
                   <Download className="w-4 h-4" />
@@ -1015,7 +1021,7 @@ export const AlzaPreciosBlog: React.FC<AlzaPreciosBlogProps> = ({ onSearchProduc
 
                 <button
                   onClick={() => {
-                    const caption = `📢 ALERTA DEL SENTINELA • OFERTIS 🇨🇱\n\n${exportArticle.title}\n\n🗓️ Ventana estimada en góndola: Del ${exportWindow?.rangeText}\n📊 Certeza: ${Math.round(exportArticle.confidence_score * 100)}%\n\n💡 Consejo ciudadano: ${(exportArticle.consumer_advice || '').replace('💡 Consejo Sentinela: ', '')}\n\n📲 Compara los precios de supermercados en tiempo real en ofertis.cl #Ofertis #PreciosChile #SupermercadosChile #AhorroChile`;
+                    const caption = generateInstagramCaption(exportArticle);
                     navigator.clipboard.writeText(caption);
                     setCopiedCaption(true);
                     setTimeout(() => setCopiedCaption(false), 2500);

@@ -17,7 +17,6 @@ import {
   ShoppingBag,
   CheckCircle2,
   ChevronRight,
-  Info,
   Layers,
   ArrowRight
 } from 'lucide-react';
@@ -150,9 +149,6 @@ export const ArticleLandingPage: React.FC<ArticleLandingPageProps> = ({
   const relatedArticles = articles
     .filter((a) => a.id !== article.id)
     .slice(0, 3);
-
-  // Primer producto afectado para el CTA principal
-  const primaryProduct = (article.affected_products && article.affected_products[0]) || 'canasta básica';
 
   return (
     <article className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-16">
@@ -430,7 +426,7 @@ export const ArticleLandingPage: React.FC<ArticleLandingPageProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Facebook */}
           <button
             onClick={handleShareFacebook}
@@ -439,7 +435,7 @@ export const ArticleLandingPage: React.FC<ArticleLandingPageProps> = ({
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
             </svg>
-            <span>Compartir en Facebook</span>
+            <span>Facebook</span>
           </button>
 
           {/* WhatsApp */}
@@ -448,7 +444,18 @@ export const ArticleLandingPage: React.FC<ArticleLandingPageProps> = ({
             className="flex items-center justify-center space-x-2 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs py-3 px-4 rounded-2xl shadow-sm transition-all cursor-pointer"
           >
             <Share2 className="w-4 h-4" />
-            <span>Enviar por WhatsApp</span>
+            <span>WhatsApp</span>
+          </button>
+
+          {/* Twitter / X */}
+          <button
+            onClick={handleShareTwitter}
+            className="flex items-center justify-center space-x-2 bg-black hover:bg-stone-800 text-white font-bold text-xs py-3 px-4 rounded-2xl shadow-sm transition-all cursor-pointer"
+          >
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            <span>X (Twitter)</span>
           </button>
 
           {/* Copiar enlace */}
@@ -461,7 +468,7 @@ export const ArticleLandingPage: React.FC<ArticleLandingPageProps> = ({
             }`}
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            <span>{copied ? '¡Enlace copiado!' : 'Copiar link directo'}</span>
+            <span>{copied ? '¡Copiado!' : 'Copiar link'}</span>
           </button>
         </div>
       </section>
