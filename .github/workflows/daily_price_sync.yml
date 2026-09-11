@@ -1,9 +1,12 @@
-name: Sincronización Diaria de Precios (Cada 24 Horas)
+name: Sincronización Periódica de Precios (3 Veces al Día)
 
 on:
   schedule:
-    # Ejecutar todos los días a las 03:00 UTC (00:00 AM medianoche, hora de Chile Continental)
-    - cron: '0 3 * * *'
+    # Ejecutar 3 veces al día en horas clave de Chile Continental (UTC-3):
+    # 03:00 UTC = 00:00 (Medianoche - Cierre y actualización canasta)
+    # 11:00 UTC = 08:00 (Mañana - Apertura de tiendas y precios matutinos)
+    # 19:00 UTC = 16:00 (Tarde - Promociones vespertinas)
+    - cron: '0 3,11,19 * * *'
   workflow_dispatch: # Permite ejecución manual bajo demanda desde la pestaña Actions
 
 jobs:

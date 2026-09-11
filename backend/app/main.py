@@ -39,23 +39,24 @@ async def lifespan(app: FastAPI):
     sync_task = None
     import os
     if os.getenv("ENABLE_DAILY_PRICE_LOOP", "false").lower() in ["true", "1", "yes"]:
+        interval_secs = int(os.getenv("PRICE_SYNC_INTERVAL_SECONDS", "28800"))  # 8 horas (3 veces al día)
         async def daily_sync_background():
             while True:
-                await asyncio.sleep(86400)
+                await asyncio.sleep(interval_secs)
                 try:
-                    logger.info("⏰ Ejecutando ciclo programado de actualización de 24 horas en segundo plano...")
+                    logger.info("⏰ Ejecutando ciclo de minería periódica en segundo plano (3 veces al día)...")
                     from app.core.database import AsyncSessionLocal
                     from app.services.seed_service import sync_or_update_seed_prices
                     from app.agents.orchestrator import MultiAgentOrchestrator
                     async with AsyncSessionLocal() as session:
                         await sync_or_update_seed_prices(session)
                         orchestrator = MultiAgentOrchestrator(session)
-                        await orchestrator.execute_full_cycle(limit_per_query=3)
+                        await orchestrator.execute_full_cycle(limit_per_query=4)
                 except Exception as ex:
-                    logger.error(f"Aviso en ciclo de 24h en segundo plano: {ex}")
+                    logger.error(f"Aviso en ciclo periódico en segundo plano: {ex}")
 
         sync_task = asyncio.create_task(daily_sync_background())
-        logger.info("Bucle de actualización automática cada 24 horas activado.")
+        logger.info(f"Bucle de actualización periódica activado (cada {interval_secs / 3600:.1f} horas / 3 veces al día).")
 
     yield
     if sync_task:

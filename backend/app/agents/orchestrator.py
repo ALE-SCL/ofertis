@@ -26,11 +26,11 @@ class MultiAgentOrchestrator:
         self.resolver = EntityResolutionAgent(db)
         self.alert_monitor = AlertMonitorAgent(db)
 
-    async def execute_full_cycle(self, limit_per_query: int = 5) -> Dict[str, Any]:
+    async def execute_full_cycle(self, limit_per_query: int = 4, target_queries: list = None) -> Dict[str, Any]:
         logger.info("=== INICIANDO CICLO MULTI-AGENTE OFERTIS CHILE ===")
 
         # 1. Loop de Minería (Harvester)
-        harvest_result = await self.harvester.run_once(limit_per_query=limit_per_query)
+        harvest_result = await self.harvester.run_once(limit_per_query=limit_per_query, target_queries=target_queries)
         raw_items = harvest_result.get("data", {}).get("raw_items", [])
         logger.info(f"Harvester finalizado: {len(raw_items)} items recolectados.")
 
