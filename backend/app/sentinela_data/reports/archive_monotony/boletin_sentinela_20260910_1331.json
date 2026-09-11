@@ -1,0 +1,126 @@
+{
+  "bulletin_id": "BUL-SENTINELA-20260910",
+  "generated_at": "2026-09-10T13:31:51.938425",
+  "total_alerts": 3,
+  "alerts": [
+    {
+      "alert_id": "ALT-20260910-01",
+      "title": "Posible alza en Paltas, Frutas de Estación",
+      "headline": "ODEPA: Boletín diario de precios y volúmenes de frutas y hortalizas en mercados mayoristas",
+      "event": {
+        "event_id": "EVT-ODEPA-20260910-1",
+        "event_type": "CLIMATE_ANOMALY",
+        "title": "ODEPA: Boletín diario de precios y volúmenes de frutas y hortalizas en mercados mayoristas",
+        "description": "<p>El presente boletín (pdf y xls) se actualiza todos los días hábiles. Los volúmenes registrados para cada producto corresponden a una estimación de las cantidades arribadas al mercado en cada jornada de comercialización, en base a cálculos sobre capacidades de carga de los camiones y cuantificación del movimiento diario de productos. Los precios se publican [&#8230;]</p>\n<p>The post <a href=\"https://www.odepa.gob.cl/publicaciones/boletines/boletin-diario-de-precios-y-volumenes-de-frutas-en-mercados-mayoristas\">Boletín diario de precios y volúmenes de frutas y hortalizas en mercados mayoristas</a> appeared first on <a href=\"https://www.odepa.gob.cl\">ODEPA | Oficina de Estudios y Políticas Agrarias</a>.</p>",
+        "primary_source": {
+          "source_name": "ODEPA (Ministerio de Agricultura de Chile)",
+          "source_type": "AGRO_BULLETIN",
+          "url": "https://www.odepa.gob.cl/publicaciones/boletines/boletin-diario-de-precios-y-volumenes-de-frutas-en-mercados-mayoristas",
+          "retrieved_at": "2026-09-10T13:31:51.760603",
+          "credibility_score": 0.99
+        },
+        "detected_at": "2026-09-10T13:31:51.760615",
+        "raw_metrics": {
+          "pubDate": "Thu, 10 Sep 2026 10:00:38 +0000"
+        }
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_CLIMATE_DROUGHT",
+        "affected_category": "hortalizas_y_frutas",
+        "affected_products": [
+          "Paltas",
+          "Frutas de Estación",
+          "Hortalizas de Riego",
+          "Cebollas",
+          "Papas"
+        ],
+        "transmission_mechanism": "La reducción de turnos de riego y la sequía en cuencas agrícolas reduce la superficie cultivada y el calibre promedio de las cosechas. La menor oferta disponible eleva el precio de equilibrio de productos de alto consumo hídrico.",
+        "estimated_lag_days_min": 15,
+        "estimated_lag_days_max": 40,
+        "severity": "MEDIA",
+        "confidence_score": 0.88
+      },
+      "consumer_advice": "💡 Consejo Sentinela: Priorice frutas y verduras de temporada de zonas del sur con mayor seguridad hídrica y aproveche los formatos a granel en supermercados que mantengan promociones semanales.",
+      "created_at": "2026-09-10T13:31:51.932038"
+    },
+    {
+      "alert_id": "ALT-20260910-02",
+      "title": "Posible alza en Pollo y Cerdo (por costo de engorda), Pan de Molde y Masas",
+      "headline": "ODEPA: Precios futuros y fob golfo de trigo y maíz",
+      "event": {
+        "event_id": "EVT-ODEPA-20260910-2",
+        "event_type": "GLOBAL_COMMODITY_SURGE",
+        "title": "ODEPA: Precios futuros y fob golfo de trigo y maíz",
+        "description": "<p>Precios futuros internacionales de trigo y maíz Este boletín presenta diariamente precios futuros de trigo Soft Red Winter y el maíz amarillo, que se transan en la Bolsa de Comercio de Chicago; trigo Hard Red Winter, de la Bolsa de Comercio de Kansas (hoy ambas pertenecen a CME Group). Los precios Fob Golfo se refieren [&#8230;]</p>\n<p>The post <a href=\"https://www.odepa.gob.cl/publicaciones/boletines/precios-futuros-y-fob-golfo-de-trigo-y-maiz-2\">Precios futuros y fob golfo de trigo y maíz</a> appeared first on <a href=\"https://www.odepa.gob.cl\">ODEPA | Oficina de Estudios y Políticas Agrarias</a>.</p>",
+        "primary_source": {
+          "source_name": "ODEPA (Ministerio de Agricultura de Chile)",
+          "source_type": "AGRO_BULLETIN",
+          "url": "https://www.odepa.gob.cl/publicaciones/boletines/precios-futuros-y-fob-golfo-de-trigo-y-maiz-2",
+          "retrieved_at": "2026-09-10T13:31:51.760637",
+          "credibility_score": 0.99
+        },
+        "detected_at": "2026-09-10T13:31:51.760642",
+        "raw_metrics": {
+          "pubDate": "Wed, 09 Sep 2026 11:24:00 +0000"
+        }
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_GLOBAL_COMMODITIES",
+        "affected_category": "canasta_avicola_y_panaderia",
+        "affected_products": [
+          "Pollo y Cerdo (por costo de engorda)",
+          "Pan de Molde y Masas",
+          "Harina",
+          "Huevos"
+        ],
+        "transmission_mechanism": "El maíz amarillo y la harina de soya representan entre el 60% y 70% del costo operativo en la producción de aves y cerdos. Las alzas en las bolsas internacionales de granos (CBOT) encarecen la alimentación animal y la molienda con un rezago de 1 a 2 meses.",
+        "estimated_lag_days_min": 25,
+        "estimated_lag_days_max": 50,
+        "severity": "MEDIA",
+        "confidence_score": 0.89
+      },
+      "consumer_advice": "💡 Consejo Sentinela: Estas variaciones tienen ciclo largo; mantenga un monitoreo semanal de las ofertas por volumen en las cadenas de supermercados para abastecer su despensa con anticipación.",
+      "created_at": "2026-09-10T13:31:51.932603"
+    },
+    {
+      "alert_id": "ALT-20260910-03",
+      "title": "Posible alza en Tomate Larga Vida, Palta Hass",
+      "headline": "Entre heladas y sequías: la resistencia de los agricultores en los Andes",
+      "event": {
+        "event_id": "EVT-NEWS-20260910-32",
+        "event_type": "CLIMATE_ANOMALY",
+        "title": "Entre heladas y sequías: la resistencia de los agricultores en los Andes",
+        "description": "Entre heladas y sequías: la resistencia de los agricultores en los Andes",
+        "primary_source": {
+          "source_name": "Salud con lupa",
+          "source_type": "VERIFIED_NEWS",
+          "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPeEs3MmQyakhRZ3JkTHpZZlAtOHNtNm1VNHVKWkJuWjRwS1NScGZ4ZGhkN3JIRFhqYVRVcUxaeTM4TFVCVUlUVEItODNmT2VBd2w0ZWhFMGRTMFIyQk1wUHpmYWhkZTRISVcxNW52V2lhM3dPVndaQzZXZGRmT01ZSmdQUWVMYnFVcWoyY0tYYWJwdzlqU2xPSzE2RlJHTG8?oc=5",
+          "retrieved_at": "2026-09-10T13:31:51.930039",
+          "credibility_score": 0.88
+        },
+        "detected_at": "2026-09-10T13:31:51.930045",
+        "raw_metrics": {
+          "original_pubdate": "Mon, 17 Feb 2025 08:00:00 GMT"
+        }
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_CLIMATE_FROST",
+        "affected_category": "frutas_y_verduras",
+        "affected_products": [
+          "Tomate Larga Vida",
+          "Palta Hass",
+          "Lechuga Costina y Escarola",
+          "Pimentón",
+          "Limón y Cítricos"
+        ],
+        "transmission_mechanism": "Las heladas polares en las regiones de Valparaíso, Metropolitana, O'Higgins y Maule queman las flores y frutos en desarrollo. La merma repentina de oferta en Lo Valledor y La Vega Central presiona los precios mayoristas en 48 horas, reflejándose en las cadenas de retail en un plazo de 5 a 12 días.",
+        "estimated_lag_days_min": 5,
+        "estimated_lag_days_max": 12,
+        "severity": "ALTA",
+        "confidence_score": 0.95
+      },
+      "consumer_advice": "💡 Consejo Sentinela: Reemplace temporalmente ensaladas frescas por verduras congeladas (choclo, arvejas, mezclas primavera), las cuales mantienen precios pactados con la agroindustria y no sufren esta volatilidad.",
+      "created_at": "2026-09-10T13:31:51.935853"
+    }
+  ]
+}

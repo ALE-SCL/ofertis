@@ -40,6 +40,17 @@ async def search_products(
     return await service.search_products(query=q, category=category, limit=limit, offset=offset)
 
 
+@router.get("/top-deals-by-category", response_model=List[ProductSearchResult])
+async def get_top_deals_by_category(
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Retorna exactamente 1 producto con el mayor porcentaje de descuento para cada categoría monitoreada.
+    """
+    service = ProductService(db)
+    return await service.get_top_deals_by_category()
+
+
 @router.get("/{canonical_id}", response_model=CanonicalProductDetail)
 async def get_product_detail(
     canonical_id: int,

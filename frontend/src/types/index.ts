@@ -74,3 +74,34 @@ export interface MiningStats {
   active_supermarkets: string[];
   commune_target: string;
 }
+
+export interface SentinelaArticle {
+  id: string;
+  bulletin_id: string;
+  title: string;
+  headline: string;
+  date: string;
+  severity: 'ALTA' | 'MEDIA' | 'BAJA' | string;
+  confidence_score: number;
+  trend_direction?: 'ALZA' | 'BAJA' | 'TENDENCIA' | string;
+  category: string;
+  category_label: string;
+  affected_products: string[];
+  source_name: string;
+  source_url?: string | null;
+  source_type: string;
+  event_type: string;
+  transmission_mechanism: string;
+  consumer_advice: string;
+  lag_days_min: number;
+  lag_days_max: number;
+}
+
+export interface SentinelaStats {
+  total_articles: number;
+  total_bulletins: number;
+  high_severity_count: number;
+  medium_severity_count: number;
+  last_updated: string;
+  monitored_sources: string[];
+}

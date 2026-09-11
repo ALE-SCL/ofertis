@@ -2,7 +2,7 @@ import logging
 from typing import List, Dict, Set
 from datetime import datetime
 
-from ..models.alert_models import MarketEvent, EarlyWarningAlert
+from ..models.alert_models import MarketEvent, EarlyWarningAlert, TrendDirection
 from .causal_graph import FoodCausalGraph
 
 logger = logging.getLogger("sentinela.engine.evaluator")
@@ -12,7 +12,7 @@ class SentinelaImpactEvaluator:
     """
     Motor de Evaluación Causal de Sentinela.
     Filtra ruidos, descarta especulaciones sin respaldo de fuentes y construye
-    alertas tempranas fundadas con base en el Grafo Causal.
+    alertas tempranas fundadas con base en el Grafo Causal (Alzas, Bajas y Temas de Interés).
     """
 
     def __init__(self, min_confidence: float = 0.80):
@@ -35,7 +35,6 @@ class SentinelaImpactEvaluator:
             # 2. Correlación contra el Grafo Causal de Cadena de Suministro
             matching_rules = FoodCausalGraph.find_matching_rules(event)
             if not matching_rules:
-                # Si un evento noticioso no tiene transmisión causal clara a alimentos, NO especulamos y se omite
                 continue
 
             for rule in matching_rules:
@@ -45,19 +44,34 @@ class SentinelaImpactEvaluator:
                 if impact.confidence_score < self.min_confidence:
                     continue
 
-                # Evitar alertas duplicadas para la misma combinación de regla y fecha
+                # Evitar alertas duplicadas para la misma combinación de regla y categoría
                 dedup_key = f"{rule['id']}:{impact.affected_category}"
                 if dedup_key in seen_impact_keys:
                     continue
                 seen_impact_keys.add(dedup_key)
 
+                # Construir título dinámico según dirección y plantilla
+                direction = impact.trend_direction
+                title_template = rule.get("title_template")
+                products_str = ", ".join(impact.affected_products[:2])
+
+                if title_template:
+                    title = title_template.format(products=products_str)
+                elif direction == TrendDirection.BAJA:
+                    title = f"Oportunidad de ahorro: Baja proyectada en {products_str}"
+                elif direction == TrendDirection.TENDENCIA:
+                    title = f"Guía y Tendencia: Consejos clave para {products_str}"
+                else:
+                    title = f"Posible alza en {products_str}"
+
                 # Construir la Alerta Temprana Fundada
                 alert = EarlyWarningAlert(
                     alert_id=f"ALT-{datetime.now().strftime('%Y%m%d')}-{len(alerts)+1:02d}",
-                    title=f"Posible alza en {', '.join(impact.affected_products[:2])}",
+                    title=title,
                     headline=event.title,
                     event=event,
                     impact=impact,
+                    trend_direction=direction,
                     consumer_advice=rule.get("consumer_advice", "Verifique alternativas de reemplazo y compare precios en tiendas.")
                 )
                 alerts.append(alert)

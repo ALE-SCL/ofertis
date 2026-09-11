@@ -195,11 +195,14 @@ class ProductService:
                     if itm.image_url and not representative_img:
                         representative_img = itm.image_url
 
+                    normal_p = latest.normal_price if (latest.normal_price and latest.normal_price > 0) else actual_price
                     if actual_price < min_pack_price:
                         min_pack_price = actual_price
                         best_item = itm
                     if actual_price > max_pack_price:
                         max_pack_price = actual_price
+                    if normal_p > max_pack_price:
+                        max_pack_price = normal_p
 
                     u_price = latest.unit_price_normalized
                     if u_price > Decimal(0):
@@ -449,3 +452,118 @@ class ProductService:
             })
 
         return categories
+
+    async def get_top_deals_by_category(self) -> List[ProductSearchResult]:
+        """
+        Retorna exactamente 1 producto con el mayor porcentaje de descuento para cada categoría monitoreada.
+        Ideal para el carrusel de ofertas estrella por categoría.
+        """
+        monitored_categories = [
+            'carne_vacuno', 'carne_pollo', 'carne_cerdo', 'lacteos', 'leche',
+            'despensa', 'fideos', 'arroz', 'frutas_verduras', 'bebidas',
+            'limpieza', 'panaderia', 'fiambreria', 'cuidado_personal', 'mascotas'
+        ]
+
+        top_deals: List[ProductSearchResult] = []
+
+        for cat in monitored_categories:
+            stmt = (
+                select(CanonicalProduct)
+                .options(
+                    selectinload(CanonicalProduct.items).selectinload(SupermarketItem.supermarket),
+                    selectinload(CanonicalProduct.items).selectinload(SupermarketItem.price_records)
+                )
+                .where(CanonicalProduct.category == cat)
+                .limit(60)
+            )
+            res = await self.db.execute(stmt)
+            cps = res.scalars().all()
+
+            cat_candidates: List[ProductSearchResult] = []
+            for canonical in cps:
+                format_groups: Dict[str, List[SupermarketItem]] = {}
+                for item in canonical.items:
+                    if not item.is_available or not item.price_records:
+                        continue
+                    fmt = extract_clean_format(item.package_quantity, item.package_unit, item.store_title)
+                    format_groups.setdefault(fmt, []).append(item)
+
+                for fmt_label, items_in_fmt in format_groups.items():
+                    best_item = None
+                    min_pack_price = Decimal('999999')
+                    max_pack_price = Decimal('0')
+                    min_unit_p = Decimal('999999')
+                    max_unit_p = Decimal('0')
+                    available_supers: List[str] = []
+                    representative_img = None
+
+                    for itm in items_in_fmt:
+                        latest = itm.price_records[0]
+                        actual_price = latest.offer_price if (latest.offer_price and latest.offer_price > 0) else latest.normal_price
+                        if actual_price <= Decimal(0):
+                            continue
+
+                        normal_p = latest.normal_price if (latest.normal_price and latest.normal_price > 0) else actual_price
+                        available_supers.append(itm.supermarket.name)
+                        if itm.image_url and not representative_img:
+                            representative_img = itm.image_url
+
+                        if actual_price < min_pack_price:
+                            min_pack_price = actual_price
+                            best_item = itm
+                        if actual_price > max_pack_price:
+                            max_pack_price = actual_price
+                        if normal_p > max_pack_price:
+                            max_pack_price = normal_p
+
+                        u_price = latest.unit_price_normalized
+                        if u_price > Decimal(0):
+                            if u_price < min_unit_p:
+                                min_unit_p = u_price
+                            if u_price > max_unit_p:
+                                max_unit_p = u_price
+
+                    if not best_item or min_pack_price == Decimal('999999'):
+                        continue
+
+                    savings_amt = (max_pack_price - min_pack_price) if max_pack_price > min_pack_price else Decimal(0)
+                    savings_pct = int(round((savings_amt / max_pack_price) * 100)) if max_pack_price > 0 else 0
+
+                    clean_name = canonical.name
+                    if fmt_label not in clean_name and len(format_groups) > 1:
+                        clean_name = f'{clean_name} {fmt_label}'
+
+                    cat_candidates.append(
+                        ProductSearchResult(
+                            id=canonical.id,
+                            name=clean_name,
+                            category=canonical.category,
+                            subcategory=canonical.subcategory,
+                            brand=canonical.brand,
+                            package_format=fmt_label,
+                            standard_unit=canonical.standard_unit,
+                            best_package_price=min_pack_price,
+                            highest_package_price=max_pack_price,
+                            savings_amount=savings_amt,
+                            savings_percentage=savings_pct,
+                            min_unit_price=min_unit_p if min_unit_p != Decimal('999999') else min_pack_price,
+                            max_unit_price=max_unit_p if max_unit_p != Decimal(0) else max_pack_price,
+                            best_supermarket_slug=best_item.supermarket.slug,
+                            best_supermarket_name=best_item.supermarket.name,
+                            available_supermarkets=list(set(available_supers)),
+                            similarity_score=1.0,
+                            image_url=representative_img
+                        )
+                    )
+
+            deals_with_savings = [c for c in cat_candidates if c.savings_percentage > 0]
+            if deals_with_savings:
+                top_deal = max(deals_with_savings, key=lambda x: (x.savings_percentage, x.savings_amount))
+                top_deals.append(top_deal)
+            elif cat_candidates:
+                top_deals.append(cat_candidates[0])
+
+        # Ordenar los productos por porcentaje de descuento descendente
+        top_deals.sort(key=lambda x: x.savings_percentage, reverse=True)
+        return top_deals
+

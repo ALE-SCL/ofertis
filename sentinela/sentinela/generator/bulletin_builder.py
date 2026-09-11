@@ -45,14 +45,30 @@ class BulletinBuilder:
         else:
             for idx, a in enumerate(alerts, 1):
                 sev = a.impact.severity.value
-                sev_badge = "🔴 ALTA" if sev == "ALTA" else ("🟡 MEDIA" if sev == "MEDIA" else "🟢 BAJA")
+                direction = getattr(a.impact, "trend_direction", None)
+                dir_val = direction.value if hasattr(direction, "value") else str(direction or "ALZA")
+
+                if dir_val == "BAJA":
+                    dir_badge = "🟢 BAJA / OPORTUNIDAD"
+                    action_label = "Ventana de Oportunidad / Baja en Góndola"
+                    prod_label = "Productos con Oportunidad de Ahorro"
+                elif dir_val == "TENDENCIA":
+                    dir_badge = "🔵 TENDENCIA / INTERÉS"
+                    action_label = "Vigencia de Recomendación"
+                    prod_label = "Categorías / Productos Involucrados"
+                else:
+                    dir_badge = "🔴 ALZA PROYECTADA"
+                    action_label = "Ventana de Traspaso a Góndola"
+                    prod_label = "Productos con Riesgo de Alza"
+
+                sev_badge = "ALTA" if sev == "ALTA" else ("MEDIA" if sev == "MEDIA" else "BAJA")
 
                 lines.extend([
-                    f"## {idx}. {a.title} ({sev_badge})",
+                    f"## {idx}. {a.title} ({dir_badge} - Impacto {sev_badge})",
                     f"- **Hecho Noticioso / Evento:** *\"{a.headline}\"*",
                     f"- **Fuente Oficial Verificada:** [{a.event.primary_source.source_name}]({a.event.primary_source.url or '#'})",
-                    f"- **Productos con Riesgo de Alza:** {', '.join(a.impact.affected_products)}",
-                    f"- **Ventana de Traspaso a Góndola:** Entre {a.impact.estimated_lag_days_min} y {a.impact.estimated_lag_days_max} días",
+                    f"- **{prod_label}:** {', '.join(a.impact.affected_products)}",
+                    f"- **{action_label}:** Entre {a.impact.estimated_lag_days_min} y {a.impact.estimated_lag_days_max} días",
                     f"- **Certeza Causal:** {int(a.impact.confidence_score * 100)}%",
                     "",
                     f"### ⚙️ Mecanismo de Transmisión Económica:",
@@ -96,17 +112,28 @@ class BulletinBuilder:
             output.append(f"{BLUE}{border}{RESET}")
             return "\n".join(output)
 
-        output.append(f"{BOLD}🚨 Se detectaron {len(alerts)} señales fundadas con posible impacto en góndolas:{RESET}\n")
+        output.append(f"{BOLD}🚨 Se consolidaron {len(alerts)} notas fundadas de interés para el consumidor:{RESET}\n")
 
         for idx, a in enumerate(alerts, 1):
             sev = a.impact.severity.value
-            color = RED if sev in ["ALTA", "CRÍTICA"] else (YELLOW if sev == "MEDIA" else GREEN)
+            direction = getattr(a.impact, "trend_direction", None)
+            dir_val = direction.value if hasattr(direction, "value") else str(direction or "ALZA")
 
-            output.append(f"{color}{BOLD}[ALERTA #{idx}] {a.title.upper()} - RIESGO {sev}{RESET}")
+            if dir_val == "BAJA":
+                color = GREEN
+                type_tag = "🟢 OPORTUNIDAD DE BAJA"
+            elif dir_val == "TENDENCIA":
+                color = CYAN
+                type_tag = "🔵 TENDENCIA / GUÍA"
+            else:
+                color = RED if sev in ["ALTA", "CRÍTICA"] else YELLOW
+                type_tag = "🔴 ALERTA DE ALZA"
+
+            output.append(f"{color}{BOLD}[#{idx} {type_tag}] {a.title.upper()} (Impacto: {sev}){RESET}")
             output.append(f"  📌 {BOLD}Hecho verificado:{RESET} {a.headline}")
             output.append(f"  🏢 {BOLD}Fuente:{RESET} {a.event.primary_source.source_name}")
-            output.append(f"  🛒 {BOLD}Productos afectados:{RESET} {', '.join(a.impact.affected_products)}")
-            output.append(f"  ⏱️  {BOLD}Plazo de traspaso estimado:{RESET} {a.impact.estimated_lag_days_min} a {a.impact.estimated_lag_days_max} días (Confianza: {int(a.impact.confidence_score * 100)}%)")
+            output.append(f"  🛒 {BOLD}Productos:{RESET} {', '.join(a.impact.affected_products)}")
+            output.append(f"  ⏱️  {BOLD}Plazo proyectado:{RESET} {a.impact.estimated_lag_days_min} a {a.impact.estimated_lag_days_max} días (Confianza: {int(a.impact.confidence_score * 100)}%)")
             output.append(f"  🔍 {BOLD}Causa económica:{RESET} {a.impact.transmission_mechanism}")
             output.append(f"  {a.consumer_advice}")
             output.append(f"{'-' * 76}")

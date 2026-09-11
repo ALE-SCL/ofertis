@@ -5,12 +5,14 @@ import time
 import logging
 from datetime import datetime
 
-from .config import REPORTS_DIR
+from .config import REPORTS_DIR, BASE_DIR
 from .connectors.bcentral_connector import BancoCentralConnector
 from .connectors.rss_news_connector import RssNewsConnector
 from .connectors.climate_connector import ClimateEventConnector
 from .connectors.odepa_connector import OdepaConnector
+from .connectors.international_connector import InternationalMarketConnector
 from .engine.impact_evaluator import SentinelaImpactEvaluator
+from .engine.editorial_selector import EditorialSelector
 from .engine.event_simulator import EventSimulator
 from .generator.bulletin_builder import BulletinBuilder
 from .models.alert_models import MarketEvent, DataSource, DataSourceType
@@ -88,7 +90,15 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
         except Exception as e:
             logger.warning(f"Fallo en conector ODEPA: {e}")
 
-        # 3. Noticias económicas y agropecuarias verificadas
+        # 3. Mercados Internacionales y Fronterizos (FAO, Argentina/Cañuelas, Conab Brasil, Granos)
+        international = InternationalMarketConnector()
+        try:
+            intl_events = international.evaluate_international_events()
+            all_events.extend(intl_events)
+        except Exception as e:
+            logger.warning(f"Fallo en conector Mercados Internacionales: {e}")
+
+        # 4. Noticias económicas y agropecuarias verificadas (Canales Temáticos)
         rss_news = RssNewsConnector()
         try:
             news_events = rss_news.extract_supply_chain_events()
@@ -96,11 +106,15 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
         except Exception as e:
             logger.warning(f"Fallo en conector RSS: {e}")
 
-    # 4. Evaluación causal y filtro de anti-especulación
+    # 5. Evaluación causal y filtro de anti-especulación
     evaluator = SentinelaImpactEvaluator()
-    alerts = evaluator.evaluate_events(all_events)
+    raw_alerts = evaluator.evaluate_events(all_events)
 
-    # 5. Guardar boletines si corresponde
+    # 6. Selección Editorial Anti-Monotonía: garantiza 2-3 artículos frescos, categorías distintas y direcciones variadas
+    selector = EditorialSelector()
+    alerts = selector.select_diverse_bulletin(raw_alerts, target_count=3)
+
+    # 7. Guardar boletines si corresponde
     date_str = datetime.now().strftime("%Y%m%d_%H%M")
     if save_reports:
         md_path = os.path.join(REPORTS_DIR, f"boletin_sentinela_{date_str}.md")
@@ -111,7 +125,18 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
         logger.info(f"Boletín Markdown guardado en: {md_path}")
         logger.info(f"Boletín JSON guardado en: {json_path}")
 
-    # 6. Despachar a la consola de terminal
+        # Sincronización automática con backend de Ofertis
+        backend_reports_dir = os.path.join(os.path.dirname(BASE_DIR), "backend", "app", "sentinela_data", "reports")
+        try:
+            import shutil
+            os.makedirs(backend_reports_dir, exist_ok=True)
+            shutil.copy(md_path, os.path.join(backend_reports_dir, f"boletin_sentinela_{date_str}.md"))
+            shutil.copy(json_path, os.path.join(backend_reports_dir, f"boletin_sentinela_{date_str}.json"))
+            logger.info(f"Boletín sincronizado exitosamente con backend en: {backend_reports_dir}")
+        except Exception as e:
+            logger.warning(f"No se pudo sincronizar reporte con backend: {e}")
+
+    # 8. Despachar a la consola de terminal
     if print_console:
         summary_text = BulletinBuilder.render_console_summary(alerts)
         print("\n" + summary_text)

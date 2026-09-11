@@ -3,6 +3,7 @@ import { X, ExternalLink, TrendingDown, Bell } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import { CanonicalProductDetail } from '../types';
+import { API_BASE_URL } from '../config/api';
 
 interface ProductDetailModalProps {
   canonicalId: number | null;
@@ -29,8 +30,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       try {
         const queryFmt = format ? `?format=${encodeURIComponent(format)}` : '';
         const [detailRes, histRes] = await Promise.all([
-          axios.get(`http://localhost:8000/api/v1/products/${canonicalId}${queryFmt}`),
-          axios.get(`http://localhost:8000/api/v1/products/${canonicalId}/history`)
+          axios.get(`${API_BASE_URL}/products/${canonicalId}${queryFmt}`),
+          axios.get(`${API_BASE_URL}/products/${canonicalId}/history`)
         ]);
         setProduct(detailRes.data);
         setHistory(histRes.data);
@@ -47,32 +48,32 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   if (!canonicalId) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-stone-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-stone-900 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-stone-200 dark:border-stone-800">
         {/* Header Modal */}
-        <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+        <div className="px-6 py-4 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between bg-stone-50 dark:bg-stone-850">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-orange-800 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+              <span className="text-xs font-bold uppercase tracking-wider text-orange-800 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 px-2 py-0.5 rounded border border-orange-200 dark:border-orange-800">
                 {product?.category.replace('_', ' ')}
               </span>
               {product?.package_format && (
-                <span className="text-xs font-bold text-stone-700 bg-stone-200/80 px-2 py-0.5 rounded">
+                <span className="text-xs font-bold text-stone-700 dark:text-stone-300 bg-stone-200/80 dark:bg-stone-800 px-2 py-0.5 rounded">
                   Formato: {product.package_format}
                 </span>
               )}
               {product?.brand && (
-                <span className="text-xs text-stone-500 font-medium">Marca: {product.brand}</span>
+                <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">Marca: {product.brand}</span>
               )}
             </div>
-            <h2 className="text-lg sm:text-xl font-black text-stone-900 mt-1">
+            <h2 className="text-lg sm:text-xl font-black text-stone-900 dark:text-stone-100 mt-1">
               {product?.name || 'Cargando comparativa...'}
             </h2>
           </div>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-stone-200/70 hover:bg-stone-300 flex items-center justify-center text-stone-600 transition-colors"
+            className="w-9 h-9 rounded-full bg-stone-200/70 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 flex items-center justify-center text-stone-600 dark:text-stone-300 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -83,7 +84,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           {loading ? (
             <div className="py-16 text-center">
               <div className="w-10 h-10 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-sm font-semibold text-stone-500">Consultando bases de datos de Jumbo, Santa Isabel, Unimarc y Lider...</p>
+              <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">Consultando bases de datos de Jumbo, Santa Isabel, Unimarc y Lider...</p>
             </div>
           ) : product ? (
             <>
@@ -122,53 +123,53 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               {/* Tabla Comparativa de Supermercados */}
               <div>
-                <h3 className="text-sm font-extrabold text-stone-900 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+                <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-100 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
                   <span>Comparativa Directa para este Formato ({product.package_format || 'Estándar'})</span>
-                  <span className="text-xs font-normal text-stone-500">(Ordenado del más barato al más caro)</span>
+                  <span className="text-xs font-normal text-stone-500 dark:text-stone-400">(Ordenado del más barato al más caro)</span>
                 </h3>
 
-                <div className="overflow-x-auto rounded-2xl border border-stone-200">
-                  <table className="w-full text-left text-sm text-stone-600">
-                    <thead className="bg-stone-100 text-xs font-bold text-stone-700 uppercase tracking-wider border-b border-stone-200">
+                <div className="overflow-x-auto rounded-2xl border border-stone-200 dark:border-stone-800">
+                  <table className="w-full text-left text-sm text-stone-600 dark:text-stone-300">
+                    <thead className="bg-stone-100 dark:bg-stone-800 text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-stone-200 dark:border-stone-700">
                       <tr>
                         <th className="py-3 px-4">Supermercado</th>
                         <th className="py-3 px-4">Formato / Descripción</th>
-                        <th className="py-3 px-4 text-orange-950 font-black">Precio a Pagar</th>
+                        <th className="py-3 px-4 text-orange-950 dark:text-orange-300 font-black">Precio a Pagar</th>
                         <th className="py-3 px-4">Ref. /{product.standard_unit}</th>
                         <th className="py-3 px-4 text-center">Ir a Tienda</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-100">
+                    <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
                       {product.items.map((item) => {
                         const isCheapest = item.is_cheapest;
                         return (
-                          <tr key={item.id} className={isCheapest ? 'bg-orange-50/60 font-semibold' : 'hover:bg-stone-50'}>
+                          <tr key={item.id} className={isCheapest ? 'bg-orange-50/60 dark:bg-orange-950/30 font-semibold' : 'hover:bg-stone-50 dark:hover:bg-stone-850'}>
                             <td className="py-3.5 px-4 flex items-center space-x-2">
                               <span
                                 className="w-3 h-3 rounded-full flex-shrink-0"
                                 style={{ backgroundColor: item.supermarket_color }}
                               ></span>
-                              <span className="font-bold text-stone-900">{item.supermarket_name}</span>
+                              <span className="font-bold text-stone-900 dark:text-stone-100">{item.supermarket_name}</span>
                               {isCheapest && (
                                 <span className="bg-orange-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
                                   ★ PRECIO MÁS BARATO
                                 </span>
                               )}
                             </td>
-                            <td className="py-3.5 px-4 text-xs font-medium text-stone-700">
+                            <td className="py-3.5 px-4 text-xs font-medium text-stone-700 dark:text-stone-300">
                               {item.store_title} ({item.package_format || `${item.package_quantity} ${item.package_unit}`})
                             </td>
                             <td className="py-3.5 px-4">
-                              <div className="text-base font-black text-stone-900">
+                              <div className="text-base font-black text-stone-900 dark:text-stone-100">
                                 ${Math.round(item.current_package_price).toLocaleString('es-CL')}
                               </div>
                               {item.current_offer_price && item.current_normal_price > item.current_offer_price && (
-                                <div className="text-[10px] text-stone-400 line-through">
+                                <div className="text-[10px] text-stone-400 dark:text-stone-500 line-through">
                                   Normal: ${Math.round(item.current_normal_price).toLocaleString('es-CL')}
                                 </div>
                               )}
                             </td>
-                            <td className="py-3.5 px-4 text-stone-600 font-medium text-xs">
+                            <td className="py-3.5 px-4 text-stone-600 dark:text-stone-400 font-medium text-xs">
                               ${Math.round(item.current_unit_price_normalized).toLocaleString('es-CL')} /{product.standard_unit}
                             </td>
                             <td className="py-3.5 px-4 text-center">
@@ -176,7 +177,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                 href={item.product_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center space-x-1 text-orange-600 hover:text-orange-700 text-xs font-bold"
+                                className="inline-flex items-center space-x-1 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-xs font-bold"
                               >
                                 <span>Comprar</span>
                                 <ExternalLink className="w-3 h-3" />
@@ -192,14 +193,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               {/* Gráfico de Evolución Histórica de Precios */}
               {history.length > 0 && (
-                <div className="bg-stone-50 rounded-2xl p-5 border border-stone-200">
+                <div className="bg-stone-50 dark:bg-stone-850 rounded-2xl p-5 border border-stone-200 dark:border-stone-800">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h4 className="text-sm font-black text-stone-900 uppercase tracking-wider flex items-center space-x-1.5">
+                      <h4 className="text-sm font-black text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center space-x-1.5">
                         <TrendingDown className="w-4 h-4 text-orange-600" />
                         <span>Histórico de Precios por {product.standard_unit} (CLP)</span>
                       </h4>
-                      <p className="text-xs text-stone-500">Detección de inflación y fluctuación de ofertas</p>
+                      <p className="text-xs text-stone-500 dark:text-stone-400">Detección de inflación y fluctuación de ofertas</p>
                     </div>
                   </div>
 

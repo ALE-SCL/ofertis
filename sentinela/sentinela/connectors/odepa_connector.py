@@ -15,7 +15,8 @@ class OdepaConnector:
     """
     Conector oficial con la Oficina de Estudios y Políticas Agrarias (ODEPA)
     del Ministerio de Agricultura de Chile.
-    Monitorea boletines de mercados mayoristas (Lo Valledor, La Vega) y precios futuros de granos.
+    Monitorea boletines de mercados mayoristas (Lo Valledor, La Vega Central),
+    precios futuros de granos, carnes, lácteos y temporadas de cosecha.
     """
 
     def __init__(self, feed_url: str = ODEPA_FEED_URL):
@@ -26,7 +27,7 @@ class OdepaConnector:
         try:
             req = urllib.request.Request(
                 self.feed_url,
-                headers={"User-Agent": "Sentinela-Chile/1.0 (Food-Price-Early-Warning)"}
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Sentinela-Chile/2.0 (Food-Price-Early-Warning)"}
             )
             with urllib.request.urlopen(req, timeout=12) as response:
                 content = response.read()
@@ -51,18 +52,38 @@ class OdepaConnector:
         bulletins = raw_bulletins if raw_bulletins is not None else self.fetch_bulletins()
         events: List[MarketEvent] = []
 
-        # Palabras clave relevantes en boletines de ODEPA
-        keywords_wholesale = ["mayoristas", "frutas y hortalizas", "lo valledor", "vega central"]
-        keywords_grains = ["trigo", "maíz", "maiz", "fob golfo", "precios futuros"]
-
         for idx, b in enumerate(bulletins):
             t_lower = b.get("title", "").lower()
+            d_lower = b.get("description", "").lower()
+            combined = f"{t_lower} {d_lower}"
 
             event_type = None
-            if any(k in t_lower for k in keywords_wholesale):
-                event_type = "CLIMATE_ANOMALY"  # Impacta frutas y hortalizas
-            elif any(k in t_lower for k in keywords_grains):
-                event_type = "GLOBAL_COMMODITY_SURGE"  # Impacta granos y engorda animal
+
+            # 1. Papa, cebolla, tubérculos
+            if any(k in combined for k in ["papas", "papa", "cebollas", "tubérculos", "tuberculos"]):
+                event_type = "TUBER_ABUNDANCE"
+            # 2. Cítricos y limones
+            elif any(k in combined for k in ["cítricos", "citricos", "limón", "limon", "naranja", "mandarina"]):
+                event_type = "SEASONAL_CITRUS_PEAK"
+            # 3. Lácteos y leche
+            elif any(k in combined for k in ["leche", "lácteos", "lacteos", "recepción de leche", "queso"]):
+                event_type = "DAIRY_SPRING_FLUSH"
+            # 4. Carnes y ganado
+            elif any(k in combined for k in ["carne", "faena", "bovinos", "vacuno", "porcino"]):
+                event_type = "BEEF_IMPORT_EXPANSION"
+            # 5. Mercados mayoristas de frutas y hortalizas (Lo Valledor, La Vega)
+            elif any(k in combined for k in ["mayoristas", "frutas y hortalizas", "lo valledor", "vega central"]):
+                # Si menciona bajas o estabilidad, se clasifica como sobreoferta/ahorro
+                if any(w in combined for w in ["baja", "abundancia", "estabilidad", "ingreso"]):
+                    event_type = "HARVEST_GLUT"
+                else:
+                    event_type = "CLIMATE_ANOMALY"
+            # 6. Granos y precios futuros
+            elif any(k in combined for k in ["trigo", "maíz", "maiz", "fob golfo", "precios futuros"]):
+                if any(w in combined for w in ["baja", "caída", "estabilidad", "cosecha"]):
+                    event_type = "COMMODITY_DROP"
+                else:
+                    event_type = "GLOBAL_COMMODITY_SURGE"
 
             if event_type:
                 event = MarketEvent(
@@ -80,5 +101,5 @@ class OdepaConnector:
                 )
                 events.append(event)
 
-        logger.info(f"OdepaConnector: {len(events)} boletines de alta relevancia extraídos de ODEPA.")
+        logger.info(f"OdepaConnector: {len(events)} boletines especializados extraídos de ODEPA.")
         return events
