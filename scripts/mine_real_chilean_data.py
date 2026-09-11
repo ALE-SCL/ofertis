@@ -13,24 +13,12 @@ from app.agents.entity_resolution_agent import EntityResolutionAgent
 from app.scrapers.cencosud_scraper import CencosudScraperAdapter
 from app.scrapers.unimarc_scraper import UnimarcScraperAdapter
 from app.scrapers.lider_scraper import LiderScraperAdapter
+from app.agents.harvester_agent import HarvesterAgent
 
 
-QUERIES_TO_MINE = [
-    {"category": "leche", "query": "leche descremada"},
-    {"category": "leche", "query": "leche entera"},
-    {"category": "leche", "query": "leche semidescremada"},
-    {"category": "leche", "query": "leche sin lactosa"},
-    {"category": "carne_vacuno", "query": "lomo liso"},
-    {"category": "carne_vacuno", "query": "posta negra"},
-    {"category": "carne_vacuno", "query": "lomo vetado"},
-    {"category": "carne_pollo", "query": "pechuga pollo"},
-    {"category": "arroz", "query": "arroz grado 1"},
-    {"category": "fideos", "query": "spaghetti"},
-    {"category": "fideos", "query": "espirales"},
-]
+async def mine_live_retail(targets=None, limit_per_query=3):
+    queries_to_mine = targets or HarvesterAgent.get_all_catalog_targets()
 
-
-async def mine_live_retail():
     print("==================================================================")
     print("🚀 INICIANDO MINERÍA DE DATOS REAL EN VIVO (RETAIL CHILE)")
     print("Consultando APIs de catálogo de Jumbo, Santa Isabel, Unimarc y Lider...")
@@ -49,7 +37,7 @@ async def mine_live_retail():
         resolver = EntityResolutionAgent(session)
         total_mined = 0
 
-        for q_item in QUERIES_TO_MINE:
+        for q_item in queries_to_mine:
             cat = q_item["category"]
             q = q_item["query"]
             print(f"\n🔍 Minando categoría '{cat}' con término: '{q}'...")
@@ -57,7 +45,7 @@ async def mine_live_retail():
             raw_items = []
             for sc in scrapers:
                 try:
-                    items = await sc.search_category(category=cat, query=q, limit=4)
+                    items = await sc.search_category(category=cat, query=q, limit=limit_per_query)
                     print(f"   [{sc.supermarket_name}] Extraídos: {len(items)} productos reales.")
                     raw_items.extend(items)
                 except Exception as ex:
@@ -83,4 +71,19 @@ async def mine_live_retail():
 
 
 if __name__ == "__main__":
-    asyncio.run(mine_live_retail())
+    import argparse
+    parser = argparse.ArgumentParser(description="Ofertis Chile - Minería Multi-Categoría")
+    parser.add_argument("--category", type=str, help="Categoría específica a minar (ej: frutas, verduras, bebidas, etc.)")
+    parser.add_argument("--all", action="store_true", help="Minar todos los 80+ objetivos del catálogo")
+    parser.add_argument("--limit", type=int, default=3, help="Límite de productos por supermercado por consulta")
+    args = parser.parse_args()
+
+    targets = None
+    if args.category:
+        targets = [t for t in HarvesterAgent.get_all_catalog_targets() if t["category"] == args.category]
+        if not targets:
+            targets = [{"category": args.category, "query": args.category}]
+    elif not args.all:
+        targets = HarvesterAgent.get_current_shift_batch()
+
+    asyncio.run(mine_live_retail(targets=targets, limit_per_query=args.limit))
