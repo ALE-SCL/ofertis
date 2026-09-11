@@ -19,34 +19,44 @@ logger = logging.getLogger("sentinela.connectors.rss")
 # Canales temáticos de minería periodística y sectorial
 RSS_SEARCH_CHANNELS = [
     {
-        "channel": "Agronomía y Cosechas (Chile)",
-        "query": "chile odepa inia agricultura cosecha hortalizas frutas",
+        "channel": "Inflación, IPC y Canasta Básica (INE)",
+        "query": "chile inflacion ipc canasta basica",
+        "category": "ipc_ine"
+    },
+    {
+        "channel": "Carnes, Ganadería y Avícola",
+        "query": "chile precio carne vacuno pollo",
+        "category": "carnes"
+    },
+    {
+        "channel": "Trigo, Molinos, Harina y Panadería",
+        "query": "chile panaderia harina trigo molinos",
+        "category": "trigo_panaderia"
+    },
+    {
+        "channel": "Industria Láctea y Quesos",
+        "query": "chile leche quesos lacteos industria",
+        "category": "lacteos_despensa"
+    },
+    {
+        "channel": "Mercados Mayoristas y Cosechas (Lo Valledor / La Vega)",
+        "query": "chile frutas verduras lo valledor",
         "category": "agro_local"
     },
     {
         "channel": "Bajas de Precios y Oportunidades de Ahorro",
-        "query": "chile baja precio alimentos abundancia temporada lo valledor",
+        "query": "chile baja precios oferta alimentos",
         "category": "bajas_ahorro"
     },
     {
-        "channel": "Carnes, Ganadería y Avícola",
-        "query": "chile carne vacuno pollo cerdo asprocer faena",
-        "category": "carnes"
+        "channel": "Dólar, Fletes e Insumos Importados",
+        "query": "banco central chile dolar alimentos",
+        "category": "divisa_fletes"
     },
     {
-        "channel": "Lácteos y Despensa",
-        "query": "chile leche queso colun fedeleche trigo panaderia harina",
-        "category": "lacteos_despensa"
-    },
-    {
-        "channel": "IPC de Alimentos e Inflación (INE)",
-        "query": "ine ipc alimentos canasta basica inflacion chile",
-        "category": "ipc_ine"
-    },
-    {
-        "channel": "Guías Prácticas y Estrategias Ciudadanas",
-        "query": "chile sustitutos carne legumbres congelados ahorro familiar",
-        "category": "guias_consumidor"
+        "channel": "Pescadería, Jurel y Conservas",
+        "query": "chile pescados mariscos jurel conservas",
+        "category": "pescados_mariscos"
     }
 ]
 
@@ -122,29 +132,45 @@ class RssNewsConnector:
                 event_type = None
 
                 # 1. Bajas y sobreoferta
-                if any(k in title_lower for k in ["baja", "caen", "desplome", "abundancia", "cosecha récord", "cosecha record", "ahorro", "más barato"]):
+                if any(k in title_lower for k in ["baja", "caen", "desplome", "abundancia", "cosecha récord", "cosecha record", "ahorro", "más barato", "respiro", "descienden"]):
                     if any(w in title_lower for w in ["papa", "cebolla"]):
                         event_type = "TUBER_ABUNDANCE"
                     elif any(w in title_lower for w in ["limón", "limon", "naranja", "cítrico"]):
                         event_type = "SEASONAL_CITRUS_PEAK"
-                    elif any(w in title_lower for w in ["leche", "queso", "lácteo"]):
+                    elif any(w in title_lower for w in ["leche", "queso", "lácteo", "lacteo"]):
                         event_type = "DAIRY_SPRING_FLUSH"
-                    elif any(w in title_lower for w in ["carne", "vacuno"]):
+                    elif any(w in title_lower for w in ["carne", "vacuno", "novillo"]):
                         event_type = "BEEF_IMPORT_EXPANSION"
                     else:
                         event_type = "HARVEST_GLUT"
 
-                # 2. Temas de Interés y Guías Ciudadanas
-                elif bool(re.search(r'\b(ipc|ine)\b', title_lower)) or any(k in title_lower for k in ["inflación de alimentos", "costo de la vida"]):
+                # 2. Temas de Interés, IPC y Guías Ciudadanas
+                elif bool(re.search(r'\b(ipc|ine)\b', title_lower)) or any(k in title_lower for k in ["inflación", "inflacion", "costo de la vida", "canasta"]):
                     event_type = "IPC_FOOD_REPORT"
-                elif any(k in title_lower for k in ["legumbres", "sustituto", "proteína económica", "jurel"]):
+                elif any(k in title_lower for k in ["legumbres", "sustituto", "proteína", "proteina", "jurel", "pescado", "marisco", "merluza"]):
                     event_type = "NUTRITIONAL_SAVINGS_GUIDE"
                 elif any(k in title_lower for k in ["congeladas", "congelar", "conservación", "desperdicio"]):
                     event_type = "CONSUMER_PRESERVATION_GUIDE"
                 elif any(k in title_lower for k in ["por mayor", "mayorista", "fardo", "saco", "volumen"]):
                     event_type = "BULK_BUYING_GUIDE"
 
-                # 3. Alzas y factores de riesgo
+                # 3. Macro y Divisas
+                elif any(k in title_lower for k in ["dolar", "dólar", "tipo de cambio", "peso chileno", "tasas de la fed"]):
+                    event_type = "CURRENCY_USD_PRESSURE"
+
+                # 4. Insumos globales y comodities (Trigo, Harina, Granos, Maíz)
+                elif any(k in title_lower for k in ["trigo", "harina", "panadería", "panaderia", "molino", "maíz", "maiz", "soya", "soja", "fao"]):
+                    event_type = "GLOBAL_COMMODITY_SURGE"
+
+                # 5. Lácteos y Ganadería industrial
+                elif any(k in title_lower for k in ["leche", "queso", "fedeleche", "colun", "soprole"]):
+                    event_type = "DAIRY_SPRING_FLUSH"
+                elif any(k in title_lower for k in ["carne", "vacuno", "novillo", "frigorífico", "cañuelas", "asprocer"]):
+                    event_type = "LOGISTICS_DISRUPTION"
+
+                # 6. Alzas por factores climáticos y energía
+                elif any(k in title_lower for k in ["diesel", "diésel", "combustibles", "enap", "flete"]):
+                    event_type = "FUEL_PRICE_SURGE"
                 elif any(k in title_lower for k in KEYWORDS_CLIMATE):
                     if any(w in title_lower for w in ["helada", "heladas", "ola polar"]):
                         event_type = "CLIMATE_FROST"
@@ -154,10 +180,6 @@ class RssNewsConnector:
                     event_type = "ZOOSANITARY_ALERT"
                 elif any(k in title_lower for k in KEYWORDS_GEOPOLITICS_LOGISTICS):
                     event_type = "LOGISTICS_DISRUPTION"
-                elif any(k in title_lower for k in KEYWORDS_COMMODITIES):
-                    event_type = "GLOBAL_COMMODITY_SURGE"
-                elif any(k in title_lower for k in ["diesel", "combustibles", "enap"]):
-                    event_type = "FUEL_PRICE_SURGE"
 
                 if event_type:
                     source_name = "Prensa Económica Verificada"

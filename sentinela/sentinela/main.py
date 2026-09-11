@@ -23,44 +23,175 @@ logger = logging.getLogger("sentinela")
 
 def get_sample_realistic_events() -> list:
     today_str = datetime.now().strftime("%Y%m%d")
-    return [
+    hour = datetime.now().hour
+    day = datetime.now().day
+
+    all_scenarios = [
+        # 1. Trigo y Panadería (Granos y Molinería)
         MarketEvent(
-            event_id=f"EVT-SAMPLE-{today_str}-01",
-            event_type="CLIMATE_FROST",
-            title="Heladas polares de hasta -4°C causan daño en floración temprana en valles de O'Higgins y Maule",
-            description="La Red Agroclimática y la DMC emitieron alerta por ola de frío prolongada que afecta hortalizas de hoja y tomates de invernadero.",
+            event_id=f"EVT-GRAIN-{today_str}",
+            event_type="GLOBAL_COMMODITY_SURGE",
+            title="Precio del trigo panadero y maíz forrajero presiona costos de molienda y panadería",
+            description="Informes internacionales de la FAO y bolsas de granos advierten tensiones en cosechas del hemisferio norte que impactan costos de importación para molinos chilenos.",
             primary_source=DataSource(
-                source_name="Dirección Meteorológica de Chile (DMC)",
-                source_type=DataSourceType.METEOROLOGICAL,
-                url="https://www.meteochile.gob.cl",
+                source_name="Organización de las Naciones Unidas para la Alimentación (FAO)",
+                source_type=DataSourceType.VERIFIED_NEWS,
+                url="https://www.fao.org/worldfoodsituation/foodpricesindex",
+                credibility_score=0.98
+            )
+        ),
+        # 2. Carnes y Ganadería Mercosur
+        MarketEvent(
+            event_id=f"EVT-BEEF-{today_str}",
+            event_type="LOGISTICS_DISRUPTION",
+            title="Ajuste en mercados ganaderos del Mercosur y fletes frigoríficos condiciona valor del vacuno",
+            description="La cotización de novillo gordo en Cañuelas y demoras en pasos fronterizos impulsan ajustes en el valor de reposición de cortes al vacío importados.",
+            primary_source=DataSource(
+                source_name="Mercado Agroganadero Mercosur (Cañuelas)",
+                source_type=DataSourceType.OFFICIAL_INDICATOR,
+                url="https://www.mercadoagroganadero.com.ar",
+                credibility_score=0.96
+            )
+        ),
+        # 3. IPC e Inflación Canasta Básica (INE)
+        MarketEvent(
+            event_id=f"EVT-IPC-{today_str}",
+            event_type="IPC_FOOD_REPORT",
+            title="Boletín del IPC del INE: Alimentos procesados muestran rigidez mientras hortalizas dan tregua",
+            description="El Instituto Nacional de Estadísticas publicó el desglose inflacionario donde subclases de abarrotes mantienen presiones mientras productos de estación bajan.",
+            primary_source=DataSource(
+                source_name="Instituto Nacional de Estadísticas (INE Chile)",
+                source_type=DataSourceType.OFFICIAL_INDICATOR,
+                url="https://www.ine.gob.cl",
                 credibility_score=0.99
             )
         ),
+        # 4. Baja y Abundancia en Tubérculos (Papas del Sur)
         MarketEvent(
-            event_id=f"EVT-SAMPLE-{today_str}-02",
+            event_id=f"EVT-POTATO-{today_str}",
+            event_type="TUBER_ABUNDANCE",
+            title="Oportunidad de ahorro: Cosechas de papas del sur abaratan el saco en Lo Valledor y ferias",
+            description="Ingreso masivo de camiones desde La Araucanía y Los Lagos satura patios mayoristas generando una baja acumulada de hasta 35% respecto al mes previo.",
+            primary_source=DataSource(
+                source_name="ODEPA - Mercado Mayorista Lo Valledor",
+                source_type=DataSourceType.AGRO_BULLETIN,
+                url="https://www.odepa.gob.cl",
+                credibility_score=0.99
+            )
+        ),
+        # 5. Dólar y Tipo de Cambio (Banco Central)
+        MarketEvent(
+            event_id=f"EVT-FX-{today_str}",
             event_type="CURRENCY_USD_PRESSURE",
-            title="Dólar observado alcanza los $958 CLP tras decisión de tasas de la Reserva Federal",
-            description="Fuerte apreciación del billete verde presiona costos de fletes marítimos y contratos de trigo panadero y aceites de soya.",
+            title="Dólar observado sobre los $960 CLP tras decisiones de la Reserva Federal y el Banco Central",
+            description="El billete verde presiona los contratos de importación de aceites vegetales, legumbres a granel y fletes marítimos de insumos.",
             primary_source=DataSource(
                 source_name="Banco Central de Chile (Mindicador)",
                 source_type=DataSourceType.OFFICIAL_INDICATOR,
                 url="https://mindicador.cl",
                 credibility_score=0.99
             ),
-            raw_metrics={"dolar_observado": 958.40}
+            raw_metrics={"dolar_observado": 962.50}
         ),
+        # 6. Primavera Lechera y Quesos
         MarketEvent(
-            event_id=f"EVT-SAMPLE-{today_str}-03",
-            event_type="GLOBAL_COMMODITY_SURGE",
-            title="La sequía y las tensiones en el Mar Negro disparan el precio internacional del trigo y maíz en la FAO",
-            description="Reporte mensual de granos de la FAO advierte sobre encarecimiento global de cereales forrajeros para la engorda animal.",
+            event_id=f"EVT-DAIRY-{today_str}",
+            event_type="DAIRY_SPRING_FLUSH",
+            title="Temporada de alta recepción láctea en el sur impulsa promociones y estabilidad en quesos",
+            description="Fedeleche y plantas del sur reportan peak productivo estacional en praderas, permitiendo mayor acumulación de inventarios industriales.",
             primary_source=DataSource(
-                source_name="Organización de las Naciones Unidas para la Alimentación (FAO)",
+                source_name="Fedeleche / ODEPA Lácteos",
+                source_type=DataSourceType.AGRO_BULLETIN,
+                url="https://www.fedeleche.cl",
+                credibility_score=0.95
+            )
+        ),
+        # 7. Diésel y Combustibles ENAP
+        MarketEvent(
+            event_id=f"EVT-FUEL-{today_str}",
+            event_type="FUEL_PRICE_SURGE",
+            title="Variación en informe semanal de ENAP: Diésel traslada presiones a fletes troncales de alimentos",
+            description="Las tarifas de transporte de carga desde plantas agroindustriales a centros de acopio del retail absorben nuevos costos de combustible.",
+            primary_source=DataSource(
+                source_name="Empresa Nacional del Petróleo (ENAP)",
+                source_type=DataSourceType.OFFICIAL_INDICATOR,
+                url="https://www.enap.cl",
+                credibility_score=0.98
+            )
+        ),
+        # 8. Proteínas Marinas y Jurel (SERNAC)
+        MarketEvent(
+            event_id=f"EVT-FISH-{today_str}",
+            event_type="NUTRITIONAL_SAVINGS_GUIDE",
+            title="El jurel y pescadería fresca destacan como alternativas económicas y nutricionales ante carnes rojas",
+            description="Terminales pesqueros y sondeos del Sernac confirman amplia disponibilidad y precios convenientes en conservas y pescado de temporada.",
+            primary_source=DataSource(
+                source_name="SERNAC / Terminal Pesquero Metropolitano",
                 source_type=DataSourceType.VERIFIED_NEWS,
-                url="https://www.fao.org/worldfoodsituation/foodpricesindex",
+                url="https://www.sernac.cl",
+                credibility_score=0.95
+            )
+        ),
+        # 9. Maíz Amarillo y Planteles Avícolas
+        MarketEvent(
+            event_id=f"EVT-POULTRY-{today_str}",
+            event_type="GLOBAL_COMMODITY_SURGE",
+            title="Cotización de granos forrajeros en bolsa de Chicago incide en costos de engorda avícola y porcina",
+            description="La ración alimentaria concentra el mayor costo de los planteles de pollo y huevos en las regiones centrales.",
+            primary_source=DataSource(
+                source_name="Bolsa de Comercio de Chicago (CBOT)",
+                source_type=DataSourceType.INTERNATIONAL,
+                url="https://www.cmegroup.com",
                 credibility_score=0.97
             )
+        ),
+        # 10. Cítricos y Bajas de Temporada
+        MarketEvent(
+            event_id=f"EVT-CITRUS-{today_str}",
+            event_type="SEASONAL_CITRUS_PEAK",
+            title="Gran volumen de cítricos y frutas de estación reduce valores en ferias libres del país",
+            description="Cosechas del valle del Limarí y Coquimbo entran a pleno rendimiento abaratando el limón y la naranja para el consumo familiar.",
+            primary_source=DataSource(
+                source_name="ODEPA - Información de Ferias Libres",
+                source_type=DataSourceType.AGRO_BULLETIN,
+                url="https://www.odepa.gob.cl",
+                credibility_score=0.98
+            )
+        ),
+        # 11. Clima y Cuencas Centrales
+        MarketEvent(
+            event_id=f"EVT-CLIMATE-{today_str}",
+            event_type="CLIMATE_ANOMALY",
+            title="Déficit hídrico y turnos de riego en cuencas centrales monitorean calibres de hortalizas",
+            description="La DGA y asociaciones de canalistas regulan caudales en O'Higgins y Maule con impacto preventivo en superficies cultivadas.",
+            primary_source=DataSource(
+                source_name="Dirección General de Aguas (DGA) / DMC",
+                source_type=DataSourceType.METEOROLOGICAL,
+                url="https://dga.mop.gob.cl",
+                credibility_score=0.97
+            )
+        ),
+        # 12. Cosechas récord Mercosur
+        MarketEvent(
+            event_id=f"EVT-HARVEST-{today_str}",
+            event_type="COMMODITY_DROP",
+            title="Conab proyecta producción récord de oleaginosas estabilizando contratos de aceite comestible",
+            description="La estimación de cosecha sudamericana amortigua el alza de costos en aceites de maravilla y soya para el mercado chileno.",
+            primary_source=DataSource(
+                source_name="Companhia Nacional de Abastecimento (Conab Brasil)",
+                source_type=DataSourceType.INTERNATIONAL,
+                url="https://www.conab.gov.br",
+                credibility_score=0.96
+            )
         )
+    ]
+
+    # Rotación dinámica según día y hora para que cada corrida genere temas completamente variados
+    rotation_seed = (day * 7 + hour * 3) % len(all_scenarios)
+    return [
+        all_scenarios[rotation_seed % len(all_scenarios)],
+        all_scenarios[(rotation_seed + 4) % len(all_scenarios)],
+        all_scenarios[(rotation_seed + 8) % len(all_scenarios)]
     ]
 
 

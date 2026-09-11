@@ -26,6 +26,89 @@ class EconomicJournalist:
         text = re.sub(r'[^a-z0-9]+', '-', text)
         return text.strip('-')[:60]
 
+    def _generate_editorial_headline(self, alert: Optional[Dict[str, Any]], now: datetime) -> tuple[str, str]:
+        if not alert:
+            return (
+                "Estabilidad en la Cadena Agroalimentaria: Indicadores tempranos muestran calma en precios clave",
+                "Un análisis causal de los factores que inciden en el valor de los alimentos en Chile."
+            )
+
+        impact = alert.get("impact", {})
+        category = impact.get("affected_category", "general").lower()
+        direction = alert.get("trend_direction") or impact.get("trend_direction", "ALZA")
+        if isinstance(direction, dict):
+            direction = direction.get("value", "ALZA")
+        direction = str(direction).upper()
+
+        products = impact.get("affected_products", [])
+        prod_first = products[0] if products else "Alimentos Básicos"
+        prod_pair = ", ".join(products[:2]) if products else "la canasta básica"
+        seed = (now.day * 7 + now.hour * 13 + len(prod_first))
+
+        if direction == "BAJA":
+            headlines = [
+                f"Oportunidad de Ahorro: Abundancia de cosechas y bajas mayoristas en {prod_first}",
+                f"Respiro al Bolsillo: Caída en costos de reposición anticipa ofertas en {prod_pair}",
+                f"Buenas Noticias para la Mesa Familiar: Bajan los valores mayoristas de {prod_first}",
+                f"Liquidación en Mercados de Abasto: La mayor oferta abarata {prod_pair}"
+            ]
+            subtitle = "El monitoreo de mercados mayoristas y cosechas de Sentinela detecta caídas de precios trasladables al consumidor en los próximos días."
+        elif "ipc" in category or "canasta" in category:
+            headlines = [
+                "Radiografía del IPC de Alimentos: Claves y estrategias para proteger el presupuesto familiar",
+                "Inflación en la Góndola: El análisis del INE sobre qué alimentos suben y cuáles dan tregua",
+                "Cuentas del Hogar: Las divisiones alimentarias que presionan la canasta básica este mes",
+                "Tendencias del Costo de la Vida: Qué productos conviene comprar y cuáles sustituir"
+            ]
+            subtitle = "Un desglose detallado de los últimos índices del INE y ODEPA para orientar las compras del hogar sin pagar de más."
+        elif "trigo" in category or "panaderia" in category or "despensa" in category or any(w in prod_first.lower() for w in ["trigo", "harina", "pan", "fideo"]):
+            headlines = [
+                "Molinos, Harina y Panadería: Factores internacionales presionan los costos del trigo",
+                f"Abarrotes y Despensa: Por qué los granos y el tipo de cambio mueven el valor de {prod_pair}",
+                "El Trigo en la Mira: Señales tempranas anticipan ajustes en molienda y panadería",
+                f"Costos en Despensa Básica: Cómo la cotización de cereales incide en {prod_first}"
+            ]
+            subtitle = "Análisis causal del traspaso de cotizaciones internacionales de granos y tipo de cambio hacia la despensa chilena."
+        elif "carne" in category or "ganad" in category or any(w in prod_first.lower() for w in ["vacuno", "pollo", "cerdo", "novillo"]):
+            headlines = [
+                "Mercado de Carnes y Proteínas: Qué está pasando con el ganado y los cortes de consumo habitual",
+                "Costos en Ganadería y Aves: Radiografía de la reposición de carnes en Chile",
+                f"Proteínas Bajo la Lupa: Consejos de compra entre cortes nacionales e importados para {prod_first}",
+                f"Pulso del Sector Cárnico: Dinámica de fletes y abastecimiento en {prod_pair}"
+            ]
+            subtitle = "Evaluación de la oferta ganadera del Mercosur y planteles avícolas nacionales frente a la demanda del retail."
+        elif "lacteo" in category or any(w in prod_first.lower() for w in ["leche", "queso", "mantequilla"]):
+            headlines = [
+                "Temporada Láctea: Por qué la primavera lechera abre semanas clave para el queso y derivados",
+                f"Mercado de la Leche: Producción en praderas del sur y tendencias de precio en {prod_first}",
+                "Guía de Ahorro Lácteo: Cómo aprovechar el ciclo de alta producción en supermercados"
+            ]
+            subtitle = "La dinámica de ordeña en praderas del sur genera condiciones de abastecimiento favorables para el consumidor."
+        elif "pescad" in category or "marisc" in category or "jurel" in prod_first.lower():
+            headlines = [
+                "Proteínas del Mar: El jurel y la merluza se consolidan como alternativas de ahorro familiar",
+                "Terminales Pesqueros: Opciones convenientes de nutrición y precio frente a carnes rojas",
+                "Consumo Inteligente: Por qué la pescadería nacional es el refugio del bolsillo este mes"
+            ]
+            subtitle = "Sondeos de terminales pesqueros y SERNAC destacan la estabilidad de precios en productos del mar."
+        elif "combustible" in category or "flete" in category or "diesel" in prod_first.lower():
+            headlines = [
+                f"Transporte y Logística de Alimentos: El impacto de las tarifas de diésel en {prod_pair}",
+                "Fletes Troncales: Cómo el costo de los combustibles se traslada gradualmente a la góndola"
+            ]
+            subtitle = "Revisión del informe semanal de ENAP y la estructura de costos logísticos de la cadena de distribución."
+        else:
+            headlines = [
+                f"Presión en la Canasta Básica: Señales tempranas anticipan ajustes en {prod_pair}",
+                f"Costos del Campo a la Góndola: Por qué los factores de origen podrían mover {prod_first}",
+                f"Alerta Preventiva en Alimentos: Factores agroclimáticos y de mercado en {prod_first}",
+                f"Radiografía de Abastecimiento: El comportamiento de precios proyectado para {prod_first}"
+            ]
+            subtitle = "Un análisis causal de los factores que inciden en el valor de los alimentos en Chile, basado en ODEPA, Banco Central y agencias sectoriales."
+
+        chosen_headline = headlines[seed % len(headlines)]
+        return chosen_headline, subtitle
+
     def draft_article(self, bulletin: Dict[str, Any], alerts: List[Dict[str, Any]]) -> Article:
         """Redacta un artículo de análisis económico riguroso a partir de los datos de Sentinela."""
         now = datetime.now()
@@ -35,20 +118,14 @@ class EconomicJournalist:
 
         total_alerts = len(alerts)
         high_alerts = [a for a in alerts if a.get("impact", {}).get("severity") == "ALTA"]
-        lead_alert = alerts[0] if alerts else None
-
-        # Determinar el enfoque principal del artículo
-        if high_alerts:
-            main_focus = high_alerts[0]
-            headline_theme = main_focus.get("impact", {}).get("affected_category", "alimentos esenciales").replace("_", " ").title()
-            headline = f"Presión en la Canasta Básica: Señales tempranas anticipan ajustes en {headline_theme}"
-        elif lead_alert:
-            headline_theme = lead_alert.get("impact", {}).get("affected_category", "alimentos esenciales").replace("_", " ").title()
-            headline = f"Radiografía de Costos: Por qué la coyuntura agroclimática y logística podría mover el precio de {headline_theme}"
+        # Rotar la alerta destacada según el momento para asegurar variedad temática en portada
+        if alerts:
+            lead_idx = (now.day * 3 + now.hour) % len(alerts)
+            lead_alert = alerts[lead_idx]
         else:
-            headline = "Estabilidad en la Cadena Agroalimentaria: Indicadores tempranos muestran calma en precios clave"
+            lead_alert = None
 
-        subtitle = f"Un análisis causal de los factores que inciden en el valor de los alimentos en Chile, basado en los reportes de ODEPA, Banco Central y agencias meteorológicas."
+        headline, subtitle = self._generate_editorial_headline(lead_alert, now)
         slug = f"pulso-economico-{self._slugify(headline[:40])}-{timestamp_str}"
         svg_filename = f"termometro_riesgo_{timestamp_str}.svg"
 
@@ -57,15 +134,37 @@ class EconomicJournalist:
         timeline_mermaid = self.chart_gen.generate_timeline_gantt(alerts) if alerts else ""
         self.chart_gen.generate_risk_svg(alerts, svg_filename)
 
-        # 2. Construcción de Secciones
-        lead_text = (
-            f"En el complejo tablero de la economía doméstica chilena, el valor que el consumidor paga en la góndola "
-            f"del supermercado es sólo el último eslabón de una larga cadena de transmisión. "
-            f"El último monitoreo del sistema de alerta temprana **Sentinela** ha detectado **{total_alerts} presiones "
-            f"de costo objetivas** en la cadena productiva y logística, con un nivel de severidad moderado a relevante. "
-            f"A diferencia de la especulación o el rumor de pasillo, este análisis examina hechos documentados en "
-            f"boletines oficiales y desglosa cuándo y en qué magnitud podrían trasladarse al presupuesto de los hogares."
-        )
+        # 2. Construcción de Secciones Dinámicas
+        lead_direction = lead_alert.get("trend_direction", "ALZA") if lead_alert else "ALZA"
+        if isinstance(lead_direction, dict):
+            lead_direction = lead_direction.get("value", "ALZA")
+        lead_direction = str(lead_direction).upper()
+
+        if lead_direction == "BAJA":
+            lead_text = (
+                f"En un escenario habitualmente marcado por presiones sobre el presupuesto familiar, las últimas "
+                f"mediciones del sistema de alerta temprana **Sentinela** traen una cuota de alivio para los hogares chilenos. "
+                f"El monitoreo de mercados mayoristas, terminales de abasto y ciclos de cosecha ha detectado **{total_alerts} "
+                f"movimientos de mercado**, destacando oportunidades concretas de ahorro y bajas de precio que comenzarán "
+                f"a reflejarse en las góndolas y ferias libres durante los próximos días."
+            )
+        elif lead_direction == "TENDENCIA":
+            lead_text = (
+                f"Comprender la trayectoria real del costo de la vida es la herramienta más eficaz para defender el "
+                f"presupuesto del hogar. El último reporte del sistema de alerta temprana **Sentinela** audita las "
+                f"variaciones oficiales publicadas por el INE, ODEPA y agencias sectoriales, desglosando **{total_alerts} "
+                f"indicadores clave** para identificar qué categorías alimentarias presentan rigidez y en cuáles se abren "
+                f"ventanas de sustitución inteligente y compra informada."
+            )
+        else:
+            lead_text = (
+                f"En el complejo tablero de la economía doméstica chilena, el valor que el consumidor paga en la góndola "
+                f"del supermercado es sólo el último eslabón de una larga cadena de transmisión. "
+                f"El último monitoreo del sistema de alerta temprana **Sentinela** ha detectado **{total_alerts} presiones "
+                f"de costo objetivas** en la cadena productiva y logística, con un nivel de severidad moderado a relevante. "
+                f"A diferencia de la especulación o el rumor de pasillo, este análisis examina hechos documentados en "
+                f"boletines oficiales y desglosa cuándo y en qué magnitud podrían trasladarse al presupuesto de los hogares."
+            )
 
         metadata = EditorialMetadata(
             title=headline,
