@@ -112,7 +112,8 @@ export function App() {
           category: catSlug !== 'todos' ? catSlug : undefined,
           limit: 36,
           offset: currentOffset
-        }
+        },
+        timeout: 20000
       });
 
       if (isAppend) {
@@ -380,8 +381,9 @@ export function App() {
               {loading ? (
                 <div className="py-20 text-center bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-xs">
                   <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                  <p className="text-sm font-bold text-stone-700 dark:text-stone-200">Calculando similitud semántica con pgvector...</p>
+                  <p className="text-sm font-bold text-stone-700 dark:text-stone-200">Consultando catálogo y similitud semántica con pgvector...</p>
                   <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">Comparando precios en Jumbo, Lider, Santa Isabel y Unimarc</p>
+                  <p className="text-[11px] text-stone-400 dark:text-stone-500 mt-2 italic">Si el servidor en la nube estaba en reposo, puede demorar unos segundos en responder.</p>
                 </div>
               ) : products.length > 0 ? (
                 <>

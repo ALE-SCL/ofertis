@@ -16,8 +16,12 @@ def get_embedding_model():
     """
     global _model_instance
     if _model_instance is None:
+        if not settings.USE_LOCAL_SENTENCE_TRANSFORMER:
+            logger.info("Modo de embeddings ultraligero activo (optimizado para cloud/Render con 0 MB de sobrecarga).")
+            _model_instance = "FALLBACK"
+            return _model_instance
         try:
-            logger.info(f"Cargando modelo de embeddings: {settings.EMBEDDING_MODEL_NAME}...")
+            logger.info(f"Cargando modelo de embeddings pesado: {settings.EMBEDDING_MODEL_NAME}...")
             from sentence_transformers import SentenceTransformer
             _model_instance = SentenceTransformer(settings.EMBEDDING_MODEL_NAME)
             logger.info("Modelo de embeddings cargado exitosamente.")

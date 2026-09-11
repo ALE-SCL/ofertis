@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     # Embeddings & Vector DB
     EMBEDDING_MODEL_NAME: str = Field(default="paraphrase-multilingual-MiniLM-L12-v2")
     EMBEDDING_DIMENSION: int = Field(default=384)
+    USE_LOCAL_SENTENCE_TRANSFORMER: bool = Field(default=False) # En Render (512MB RAM) debe ser False para evitar OOM
 
     # Scraping Configuration
     DEFAULT_CHILE_COMMUNE: str = Field(default="santiago_centro")

@@ -23,11 +23,18 @@ logger = logging.getLogger("ofertis.main")
 async def lifespan(app: FastAPI):
     """
     Manejador del ciclo de vida de la aplicación.
-    Inicializa conexiones y precarga modelos de IA si corresponde.
+    Inicializa conexiones, verifica tablas y precarga datos base si está vacía.
     """
     logger.info(f"Iniciando Ofertis Backend en modo [{settings.ENVIRONMENT}]...")
-    logger.info(f"Base de datos configurada: {settings.POSTGRES_DB} en {settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}")
     logger.info(f"Canal de alertas WhatsApp: [{settings.WHATSAPP_PROVIDER}]")
+    
+    # Asegurar tablas y catálogo inicial (en Render o local)
+    try:
+        from app.services.seed_service import ensure_db_schema_and_seed
+        await ensure_db_schema_and_seed()
+    except Exception as e:
+        logger.warning(f"Aviso durante la inicialización de DB en lifespan: {e}")
+
     yield
     logger.info("Cerrando Ofertis Backend...")
 
