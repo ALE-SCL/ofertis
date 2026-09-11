@@ -348,7 +348,10 @@ class CarouselGenerator:
             draw.text((CANVAS_WIDTH - 165, CANVAS_HEIGHT - 62), "SIGUIENTE >", font=get_system_font(18, bold=True), fill=(234, 88, 12))
         else:
             draw.text((60, CANVAS_HEIGHT - 62), "Guarda este post y pásale el dato a tu familia", font=get_system_font(19, bold=True), fill=(22, 163, 74))
-            draw.text((CANVAS_WIDTH - 240, CANVAS_HEIGHT - 62), "www.ofertis.cl", font=get_system_font(21, bold=True), fill=(234, 88, 12))
+            url_text = "ofertis.vercel.app"
+            url_bbox = draw.textbbox((0, 0), url_text, font=get_system_font(21, bold=True))
+            url_w = url_bbox[2] - url_bbox[0]
+            draw.text((CANVAS_WIDTH - 60 - url_w, CANVAS_HEIGHT - 62), url_text, font=get_system_font(21, bold=True), fill=(234, 88, 12))
 
     # -------------------------------------------------------------------------
     # SLIDE 1: PORTADA LÚDICA (¡MICHITO DETECTIVE TE AVISA!)
@@ -576,10 +579,21 @@ class CarouselGenerator:
 
         # Botón gigante naranja vibrante de Ofertis
         btn_y = dy + 32
-        self._draw_rounded_card(draw, (CANVAS_WIDTH // 2 - 370, btn_y, CANVAS_WIDTH // 2 + 370, btn_y + 88), radius=24, fill=(255, 107, 0), outline=(234, 88, 12), width=2)
-        draw.text((CANVAS_WIDTH // 2 - 270, btn_y + 26), "COMPARA AHORA EN OFERTIS.CL >", font=get_system_font(26, bold=True), fill=(255, 255, 255))
+        btn_text = "COMPARA AHORA EN OFERTIS.VERCEL.APP >"
+        btn_font = get_system_font(24, bold=True)
+        btn_bbox = draw.textbbox((0, 0), btn_text, font=btn_font)
+        btn_txt_w = btn_bbox[2] - btn_bbox[0]
+        btn_w = btn_txt_w + 60
+        btn_x1 = CANVAS_WIDTH // 2 - btn_w // 2
+        btn_x2 = CANVAS_WIDTH // 2 + btn_w // 2
+        self._draw_rounded_card(draw, (btn_x1, btn_y, btn_x2, btn_y + 88), radius=24, fill=(255, 107, 0), outline=(234, 88, 12), width=2)
+        draw.text((CANVAS_WIDTH // 2 - btn_txt_w // 2, btn_y + 27), btn_text, font=btn_font, fill=(255, 255, 255))
 
-        draw.text((CANVAS_WIDTH // 2 - 270, btn_y + 115), "Revisa el informe completo en el enlace de nuestra biografía", font=get_system_font(19, bold=True), fill=(234, 88, 12))
+        sub_text = "Revisa el informe completo en el enlace de nuestra biografía"
+        sub_font = get_system_font(19, bold=True)
+        sub_bbox = draw.textbbox((0, 0), sub_text, font=sub_font)
+        sub_w = sub_bbox[2] - sub_bbox[0]
+        draw.text((CANVAS_WIDTH // 2 - sub_w // 2, btn_y + 115), sub_text, font=sub_font, fill=(234, 88, 12))
 
         self._draw_footer(draw, is_last_slide=True, theme=theme)
         return img
@@ -602,7 +616,7 @@ class CarouselGenerator:
         dir_emoji = "🚨" if direction == "ALZA" else "🎉" if direction == "BAJA" else "💡"
         dir_label = "¡AVISO PARA TU BOLSILLO!" if direction == "ALZA" else "¡BUENA NOTICIA: OPORTUNIDAD DE AHORRO!" if direction == "BAJA" else "¡DATO CLAVE DE COMPRA!"
 
-        landing_url = f"https://ofertis.cl/?tab=alza-precios&article={art_id}"
+        landing_url = f"https://ofertis.vercel.app/?tab=alza-precios&article={art_id}"
 
         caption = f"""{dir_emoji} {dir_label} 🇨🇱
 
@@ -667,7 +681,7 @@ class CarouselGenerator:
             "slides_count": len(generated_slides),
             "slide_filenames": [os.path.basename(p) for p in generated_slides],
             "caption": caption_text,
-            "landing_url": f"https://ofertis.cl/?tab=alza-precios&article={article_id}"
+            "landing_url": f"https://ofertis.vercel.app/?tab=alza-precios&article={article_id}"
         }
         manifest_path = os.path.join(article_dir, "manifest.json")
         with open(manifest_path, "w", encoding="utf-8") as f:

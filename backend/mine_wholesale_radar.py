@@ -202,7 +202,7 @@ async def ingest_items(session, store_id_map: Dict[str, int]):
             deal_label = "🏷️ Ahorro Moderado (5% a 15%)"
 
         image_url = itm.get("image_url") or CATEGORY_FALLBACK_IMAGES.get(category, CATEGORY_FALLBACK_IMAGES["despensa"])
-        purchase_url = itm.get("purchase_url") or "https://ofertis.cl"
+        purchase_url = itm.get("purchase_url") or "https://ofertis.vercel.app"
         advice = itm.get("advice") or itm.get("recommendation_note") or "Oportunidad de ahorro comprobada en canal alternativo."
         is_wholesale = bool(itm.get("is_wholesale", False))
 

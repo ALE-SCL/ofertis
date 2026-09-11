@@ -14,7 +14,7 @@ El Instituto Nacional de Estadísticas revisó la canasta básica familiar. Dete
   • 3. Revisa Ofertis para encontrar qué cadena tiene la canasta más barata hoy.
 
 🛒 Compara en tiempo real los precios de Lider, Jumbo, Santa Isabel y Unimarc totalmente gratis:
-👉 Entra a https://ofertis.cl/?tab=alza-precios&article=ALT-20260911-06 (enlace en nuestra bio)
+👉 Entra a https://ofertis.vercel.app/?tab=alza-precios&article=ALT-20260911-06 (enlace en nuestra bio)
 
 —
 #Ofertis #MichitoOfertis #AhorroChile #SupermercadosChile #PreciosChile #CanastaBasica #LiderChile #JumboChile #Unimarc #SantaIsabel #TipsDeAhorro

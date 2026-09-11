@@ -14,7 +14,7 @@ El grano con el que alimentan a los pollos y gallinas subió de precio afuera. C
   • 3. Compara en Ofertis para ver qué súper tiene el aceite o fideos en promoción hoy.
 
 🛒 Compara en tiempo real los precios de Lider, Jumbo, Santa Isabel y Unimarc totalmente gratis:
-👉 Entra a https://ofertis.cl/?tab=alza-precios&article=ALT-20260911-01 (enlace en nuestra bio)
+👉 Entra a https://ofertis.vercel.app/?tab=alza-precios&article=ALT-20260911-01 (enlace en nuestra bio)
 
 —
 #Ofertis #MichitoOfertis #AhorroChile #SupermercadosChile #PreciosChile #CanastaBasica #LiderChile #JumboChile #Unimarc #SantaIsabel #TipsDeAhorro

@@ -525,7 +525,7 @@ ${products || 'Canasta básica familiar'}
 ${adviceClean}
 
 🏢 Fuente monitoreada: ${art.source_name || 'ODEPA / INE'}
-🔎 ¡Anticípate y ahorra hasta un 35% comparando en www.ofertis.cl!
+🔎 ¡Anticípate y ahorra hasta un 35% comparando en ofertis.vercel.app!
 
 —
 #Ofertis #Sentinela #AlertaDePrecios #AhorroChile #InflacionChile #SupermercadosChile #PreciosBajos #CanastaBasica #LoValledor #EconomiaFamiliar #Chile`;
@@ -696,7 +696,7 @@ const downloadCanvasStory = (art: SentinelaArticle) => {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 44px sans-serif';
-  ctx.fillText('🐾 www.ofertis.cl', 540, 1800);
+  ctx.fillText('🐾 ofertis.vercel.app', 540, 1800);
 
   ctx.fillStyle = '#9ca3af';
   ctx.font = '500 28px sans-serif';
