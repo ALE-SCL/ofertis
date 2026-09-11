@@ -198,7 +198,7 @@ async def import_catalog_batch(
                 func.lower(CanonicalProduct.name) == c_name.lower(),
                 CanonicalProduct.category == c_cat
             )
-            canon = (await db.execute(stmt_c)).scalar_one_or_none()
+            canon = (await db.execute(stmt_c)).scalars().first()
 
             embedding = prod_data.embedding
             if not embedding:
@@ -245,7 +245,7 @@ async def import_catalog_batch(
                     SupermarketItem.supermarket_id == super_id,
                     SupermarketItem.sku == sku_clean
                 )
-                item_obj = (await db.execute(stmt_i)).scalar_one_or_none()
+                item_obj = (await db.execute(stmt_i)).scalars().first()
 
                 pkg_qty = Decimal(str(round(item_data.package_quantity, 3)))
                 norm_price = Decimal(str(round(item_data.normal_price, 2)))
@@ -286,7 +286,7 @@ async def import_catalog_batch(
                 stmt_pr = select(PriceRecord).where(
                     PriceRecord.item_id == item_obj.id
                 ).order_by(PriceRecord.recorded_at.desc()).limit(1)
-                latest_pr = (await db.execute(stmt_pr)).scalar_one_or_none()
+                latest_pr = (await db.execute(stmt_pr)).scalars().first()
 
                 if not latest_pr:
                     pr = PriceRecord(
@@ -322,6 +322,10 @@ async def import_catalog_batch(
     except Exception as exc:
         logger.exception(f"Error procesando lote {payload.batch_index}: {exc}")
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error en lote {payload.batch_index}: {type(exc).__name__} - {str(exc)}")
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(exc), "type": type(exc).__name__, "batch_index": payload.batch_index}
+        )
 
 
