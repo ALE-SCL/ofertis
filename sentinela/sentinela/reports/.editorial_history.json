@@ -47,6 +47,54 @@
     {
       "sig": "analisis_canasta_basica:Canasta Básica de Alimentos",
       "timestamp": 1789084073.382161
+    },
+    {
+      "sig": "canasta_avicola_y_panaderia:Pollo Entero y Trozado",
+      "timestamp": 1789098477.435941
+    },
+    {
+      "sig": "frutas_y_verduras:Tomate Larga Vida",
+      "timestamp": 1789098477.435941
+    },
+    {
+      "sig": "analisis_canasta_basica:Canasta Básica de Alimentos",
+      "timestamp": 1789098477.435941
+    },
+    {
+      "sig": "canasta_avicola_y_panaderia:Pollo Entero y Trozado",
+      "timestamp": 1789112881.097174
+    },
+    {
+      "sig": "frutas_y_verduras:Tomate Larga Vida",
+      "timestamp": 1789112881.097174
+    },
+    {
+      "sig": "analisis_canasta_basica:Canasta Básica de Alimentos",
+      "timestamp": 1789112881.097174
+    },
+    {
+      "sig": "canasta_avicola_y_panaderia:Pollo Entero y Trozado",
+      "timestamp": 1789127297.596759
+    },
+    {
+      "sig": "frutas_y_verduras:Tomate Larga Vida",
+      "timestamp": 1789127297.596759
+    },
+    {
+      "sig": "analisis_canasta_basica:Canasta Básica de Alimentos",
+      "timestamp": 1789127297.596759
+    },
+    {
+      "sig": "despensa_y_carnes:Harina de Trigo",
+      "timestamp": 1789137104.814662
+    },
+    {
+      "sig": "frutas_y_verduras:Tomate Larga Vida",
+      "timestamp": 1789137104.814662
+    },
+    {
+      "sig": "hortalizas_y_frutas:Paltas",
+      "timestamp": 1789137104.814662
     }
   ]
 }

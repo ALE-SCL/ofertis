@@ -26,6 +26,7 @@ twilio>=9.0.0
 
 # Environment & Utilities
 python-dotenv>=1.0.1
+Pillow>=10.0.0
 
 # Development, Testing & Code Quality
 pytest>=8.0.0

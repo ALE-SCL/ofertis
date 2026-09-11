@@ -42,3 +42,55 @@ async def get_sentinela_stats():
     """
     service = SentinelaService()
     return service.get_stats()
+
+
+@router.get("/articles/{article_id}/carousel")
+async def get_article_carousel(article_id: str):
+    """
+    Retorna la información del carrusel de 5 diapositivas (URLs de imágenes y caption de redes sociales).
+    Si aún no ha sido generado, lo genera en el acto.
+    """
+    service = SentinelaService()
+    article = None
+    for art in service.get_all_articles(limit=100):
+        if art.id == article_id:
+            article = art
+            break
+
+    if not article:
+        raise HTTPException(status_code=404, detail="Artículo no encontrado")
+
+    import os
+    import json
+    from sentinela.sentinela.generator.carousel_generator import CarouselGenerator
+
+    gen = CarouselGenerator()
+    manifest_path = os.path.join(gen.output_base_dir, article_id, "manifest.json")
+
+    if not os.path.exists(manifest_path):
+        manifest = gen.render_carousel_for_article(article.dict())
+    else:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+
+    # Añadir URLs públicas
+    public_base = os.getenv("PUBLIC_BASE_URL", "https://ofertis-backend.onrender.com").rstrip("/")
+    manifest["public_slide_urls"] = [
+        f"{public_base}/static/carousels/{article_id}/{fname}"
+        for fname in manifest.get("slide_filenames", [])
+    ]
+    return manifest
+
+
+@router.post("/articles/{article_id}/publish-social")
+async def publish_article_social(article_id: str, dry_run: bool = Query(False, description="Simula la publicación sin enviar a Meta")):
+    """
+    Publica automáticamente el carrusel de 5 diapositivas en Instagram y Facebook.
+    """
+    carousel_info = await get_article_carousel(article_id)
+    from sentinela.sentinela.publisher.meta_publisher import MetaSocialPublisher
+
+    publisher = MetaSocialPublisher()
+    result = publisher.publish_carousel(article_id, carousel_info, dry_run=dry_run)
+    return result
+

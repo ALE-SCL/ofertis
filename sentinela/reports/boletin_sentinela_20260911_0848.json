@@ -1,0 +1,133 @@
+{
+  "bulletin_id": "BUL-SENTINELA-20260911",
+  "generated_at": "2026-09-11T08:48:17.597786",
+  "total_alerts": 3,
+  "alerts": [
+    {
+      "alert_id": "ALT-20260911-01",
+      "title": "Alza de granos forrajeros en Chicago encarece alimentación de Pollo Entero y Trozado, Carne de Cerdo",
+      "headline": "ODEPA: Precios futuros y fob golfo de trigo y maíz",
+      "event": {
+        "event_id": "EVT-ODEPA-20260911-1",
+        "event_type": "GLOBAL_COMMODITY_SURGE",
+        "title": "ODEPA: Precios futuros y fob golfo de trigo y maíz",
+        "description": "<p>Precios futuros internacionales de trigo y maíz Este boletín presenta diariamente precios futuros de trigo Soft Red Winter y el maíz amarillo, que se transan en la Bolsa de Comercio de Chicago; trigo Hard Red Winter, de la Bolsa de Comercio de Kansas (hoy ambas pertenecen a CME Group). Los precios Fob Golfo se refieren [&#8230;]</p>\n<p>The post <a href=\"https://www.odepa.gob.cl/publicaciones/boletines/precios-futuros-y-fob-golfo-de-trigo-y-maiz-2\">Precios futuros y fob golfo de trigo y maíz</a> appeared first on <a href=\"https://www.odepa.gob.cl\">ODEPA | Oficina de Estudios y Políticas Agrarias</a>.</p>",
+        "primary_source": {
+          "source_name": "ODEPA (Ministerio de Agricultura de Chile)",
+          "source_type": "AGRO_BULLETIN",
+          "url": "https://www.odepa.gob.cl/publicaciones/boletines/precios-futuros-y-fob-golfo-de-trigo-y-maiz-2",
+          "retrieved_at": "2026-09-11T08:48:14.777785",
+          "credibility_score": 0.99
+        },
+        "detected_at": "2026-09-11T08:48:14.777797",
+        "raw_metrics": {
+          "pubDate": "Thu, 10 Sep 2026 11:24:00 +0000"
+        }
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_GLOBAL_COMMODITIES_GRAINS",
+        "affected_category": "canasta_avicola_y_panaderia",
+        "affected_products": [
+          "Pollo Entero y Trozado",
+          "Carne de Cerdo",
+          "Huevos Blancos y Color",
+          "Pan de Molde y Masas"
+        ],
+        "transmission_mechanism": "El maíz amarillo y la harina de soya representan entre el 60% y 70% del costo operativo en la producción de aves y cerdos. Las alzas en las bolsas internacionales de granos (CBOT) encarecen la alimentación animal y la molienda con un rezago de 1 a 2 meses.",
+        "estimated_lag_days_min": 25,
+        "estimated_lag_days_max": 50,
+        "severity": "MEDIA",
+        "trend_direction": "ALZA",
+        "confidence_score": 0.89
+      },
+      "consumer_advice": "💡 Consejo Sentinela: Busque compras programadas en distribuidores o supermercados por piezas enteras al vacío o aproveche los fardos mayoristas de harina para elaboración casera.",
+      "trend_direction": "ALZA",
+      "created_at": "2026-09-11T08:48:17.590256"
+    },
+    {
+      "alert_id": "ALT-20260911-04",
+      "title": "Oportunidad de ahorro: Cosecha masiva desploma precios mayoristas de Tomate Larga Vida, Choclo Fresco",
+      "headline": "Estiman que Brasil tendrá una cosecha récord en 2026",
+      "event": {
+        "event_id": "EVT-INT-20260911-05",
+        "event_type": "COMMODITY_DROP",
+        "title": "Estiman que Brasil tendrá una cosecha récord en 2026",
+        "description": "Estiman que Brasil tendrá una cosecha récord en 2026",
+        "primary_source": {
+          "source_name": "Somos Pymes (Conab / Cepea Brasil)",
+          "source_type": "INTERNATIONAL",
+          "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOX2syMEFtM29WaklHUzBUSVVvRWE0eDM0YmZyc1RwSEUyYVpkSWtJdTN0ekJkejhBRTczNkJ1b2N5Tm1xcExsTEJmeXdiZVY2TDBsczVyYXN3RGVjRU9kZTNYeWZhd3RvcTNpUk9mRGxYVFpCdER5MFZZRTF5U3FHWWV2OWhSdW95TTFOVzVDM1pQS3BWSVQxX9IBngFBVV95cUxOWEdBME9BR21VNFpDS0VrRGQ0N0VWRkZfVksxX1BZcWRmeklscFEtQnpnTU95ZWRpMjVOM1JibGVnVDlsanhYNm94X1BqUFlEc3hDcFFsWFZoLVVFQTVabnAwZVNQY25PczRXVUJGQ2s1cFJHdVJYZlRqR293Q3lKSFd0Skw3cGRqVDlielhyRGMtWFQtamlUY3NGbFNrQQ?oc=5",
+          "retrieved_at": "2026-09-11T08:48:16.037776",
+          "credibility_score": 0.92
+        },
+        "detected_at": "2026-09-11T08:48:16.037794",
+        "raw_metrics": {
+          "pubDate": "Thu, 12 Feb 2026 08:00:00 GMT",
+          "region": "Café y Azúcar Brasil (Conab / Cepea)"
+        }
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_HARVEST_GLUT_VEGGIES",
+        "affected_category": "frutas_y_verduras",
+        "affected_products": [
+          "Tomate Larga Vida",
+          "Choclo Fresco",
+          "Zapallo Italiano",
+          "Lechugas",
+          "Pepino"
+        ],
+        "transmission_mechanism": "El peak estacional de cosecha en los valles del centro-norte y O'Higgins satura los patios de Lo Valledor y La Vega Central. La abundancia de oferta fuerza liquidaciones mayoristas que se reflejan en ofertas agresivas de supermercados en 48 a 96 horas.",
+        "estimated_lag_days_min": 2,
+        "estimated_lag_days_max": 6,
+        "severity": "ALTA",
+        "trend_direction": "BAJA",
+        "confidence_score": 0.95
+      },
+      "consumer_advice": "💡 Consejo Sentinela: ¡Momento ideal de compra! Aproveche para elaborar salsas caseras, ensaladas abundantes o congelar tomates y choclos enteros para los meses de menor disponibilidad.",
+      "trend_direction": "BAJA",
+      "created_at": "2026-09-11T08:48:17.593873"
+    },
+    {
+      "alert_id": "ALT-20260911-06",
+      "title": "Radiografía del IPC de Alimentos del INE: Qué productos conviene comprar este mes",
+      "headline": "El IPC de agosto duplica las expectativas: inflación llega a 4,1% anual y complica al Banco Central justo el día de su reunión",
+      "event": {
+        "event_id": "EVT-NEWS-20260911-01",
+        "event_type": "IPC_FOOD_REPORT",
+        "title": "El IPC de agosto duplica las expectativas: inflación llega a 4,1% anual y complica al Banco Central justo el día de su reunión",
+        "description": "El IPC de agosto duplica las expectativas: inflación llega a 4,1% anual y complica al Banco Central justo el día de su reunión",
+        "primary_source": {
+          "source_name": "Portal Innova",
+          "source_type": "VERIFIED_NEWS",
+          "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFBDUjJEMGRIb3FRUTdSSHN4T29EeHAzT04wS1prNldTN0dlTGI1VXVNMHhYdUJaUWY3c3g1TjdVZXFYWTdKZUU1Z1I4WnlJdFh4RVVaaXF4VFZEemt0enY3ZWNydGtYREE?oc=5",
+          "retrieved_at": "2026-09-11T08:48:17.304218",
+          "credibility_score": 0.9
+        },
+        "detected_at": "2026-09-11T08:48:17.304225",
+        "raw_metrics": {
+          "original_pubdate": "Tue, 08 Sep 2026 09:49:22 GMT",
+          "channel": "IPC de Alimentos e Inflación (INE)"
+        }
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_INE_IPC_FOOD_ANALYSIS",
+        "affected_category": "analisis_canasta_basica",
+        "affected_products": [
+          "Canasta Básica de Alimentos",
+          "Abarrotes",
+          "Carnes y Pescados",
+          "Pan y Cereales"
+        ],
+        "transmission_mechanism": "El Instituto Nacional de Estadísticas publica el IPC mensual detallando variaciones por subclases alimentarias. El Sentinela audita qué divisiones cedieron terreno y cuáles presentan rigidez para orientar la sustitución inteligente.",
+        "estimated_lag_days_min": 1,
+        "estimated_lag_days_max": 5,
+        "severity": "MEDIA",
+        "trend_direction": "TENDENCIA",
+        "confidence_score": 0.98
+      },
+      "consumer_advice": "💡 Consejo Sentinela: Revise las categorías que mostraron variación negativa en el índice; las cadenas de retail suelen acompañar estas bajas con promociones destacadas en catálogo.",
+      "trend_direction": "TENDENCIA",
+      "created_at": "2026-09-11T08:48:17.594613"
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "bulletin_id": "BUL-SENTINELA-20260911",
+  "generated_at": "2026-09-11T11:31:44.815046",
+  "total_alerts": 3,
+  "alerts": [
+    {
+      "alert_id": "ALT-20260911-02",
+      "title": "Presión cambiaria por alza del dólar encarece reposición de Harina de Trigo, Aceite Vegetal / Maravilla",
+      "headline": "Dólar observado alcanza los $958 CLP tras decisión de tasas de la Reserva Federal",
+      "event": {
+        "event_id": "EVT-SAMPLE-20260911-02",
+        "event_type": "CURRENCY_USD_PRESSURE",
+        "title": "Dólar observado alcanza los $958 CLP tras decisión de tasas de la Reserva Federal",
+        "description": "Fuerte apreciación del billete verde presiona costos de fletes marítimos y contratos de trigo panadero y aceites de soya.",
+        "primary_source": {
+          "source_name": "Banco Central de Chile (Mindicador)",
+          "source_type": "OFFICIAL_INDICATOR",
+          "url": "https://mindicador.cl",
+          "retrieved_at": "2026-09-11T11:31:44.813052",
+          "credibility_score": 0.99
+        },
+        "detected_at": "2026-09-11T11:31:44.813054",
+        "raw_metrics": {
+          "dolar_observado": 958.4
+        }
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_CURRENCY_USD_SPIKE",
+        "affected_category": "despensa_y_carnes",
+        "affected_products": [
+          "Harina de Trigo",
+          "Aceite Vegetal / Maravilla",
+          "Fideos y Pastas",
+          "Carne Vacuno Importada (Paraguay/Brasil)"
+        ],
+        "transmission_mechanism": "Chile importa más del 80% del trigo panadero y aceites comestibles, así como más del 60% de la carne bovina consumida. Una depreciación del peso chileno eleva inmediatamente el costo de reposición de los molinos, refinadoras y distribuidores mayoristas, trasladándose a góndola en 2 a 4 semanas.",
+        "estimated_lag_days_min": 15,
+        "estimated_lag_days_max": 30,
+        "severity": "MEDIA",
+        "trend_direction": "ALZA",
+        "confidence_score": 0.92
+      },
+      "consumer_advice": "💡 Consejo Sentinela: Prefiera cortes nacionales de cerdo o pollo con menor exposición cambiaria. Para abarrotes, considere abastecer legumbres y pastas antes del ciclo de reposición de fin de mes.",
+      "trend_direction": "ALZA",
+      "created_at": "2026-09-11T11:31:44.814160"
+    },
+    {
+      "alert_id": "ALT-20260911-01",
+      "title": "Heladas polares reducen floración de Tomate Larga Vida, Palta Hass en valles centrales",
+      "headline": "Heladas polares de hasta -4°C causan daño en floración temprana en valles de O'Higgins y Maule",
+      "event": {
+        "event_id": "EVT-SAMPLE-20260911-01",
+        "event_type": "CLIMATE_FROST",
+        "title": "Heladas polares de hasta -4°C causan daño en floración temprana en valles de O'Higgins y Maule",
+        "description": "La Red Agroclimática y la DMC emitieron alerta por ola de frío prolongada que afecta hortalizas de hoja y tomates de invernadero.",
+        "primary_source": {
+          "source_name": "Dirección Meteorológica de Chile (DMC)",
+          "source_type": "METEOROLOGICAL",
+          "url": "https://www.meteochile.gob.cl",
+          "retrieved_at": "2026-09-11T11:31:44.813045",
+          "credibility_score": 0.99
+        },
+        "detected_at": "2026-09-11T11:31:44.813049",
+        "raw_metrics": {}
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_CLIMATE_FROST",
+        "affected_category": "frutas_y_verduras",
+        "affected_products": [
+          "Tomate Larga Vida",
+          "Palta Hass",
+          "Lechuga Costina y Escarola",
+          "Pimentón",
+          "Limón y Cítricos"
+        ],
+        "transmission_mechanism": "Las heladas polares en las regiones de Valparaíso, Metropolitana, O'Higgins y Maule queman las flores y frutos en desarrollo. La merma repentina de oferta en Lo Valledor y La Vega Central presiona los precios mayoristas en 48 horas, reflejándose en las cadenas de retail en un plazo de 5 a 12 días.",
+        "estimated_lag_days_min": 5,
+        "estimated_lag_days_max": 12,
+        "severity": "ALTA",
+        "trend_direction": "ALZA",
+        "confidence_score": 0.95
+      },
+      "consumer_advice": "💡 Consejo Sentinela: Reemplace temporalmente ensaladas frescas por verduras congeladas (choclo, arvejas, mezclas primavera), las cuales mantienen precios pactados con la agroindustria y no sufren esta volatilidad.",
+      "trend_direction": "ALZA",
+      "created_at": "2026-09-11T11:31:44.813958"
+    },
+    {
+      "alert_id": "ALT-20260911-03",
+      "title": "Estrés hídrico en cuencas agrícolas presiona oferta de Paltas, Frutas de Estación",
+      "headline": "La sequía y las tensiones en el Mar Negro disparan el precio internacional del trigo y maíz en la FAO",
+      "event": {
+        "event_id": "EVT-SAMPLE-20260911-03",
+        "event_type": "GLOBAL_COMMODITY_SURGE",
+        "title": "La sequía y las tensiones en el Mar Negro disparan el precio internacional del trigo y maíz en la FAO",
+        "description": "Reporte mensual de granos de la FAO advierte sobre encarecimiento global de cereales forrajeros para la engorda animal.",
+        "primary_source": {
+          "source_name": "Organización de las Naciones Unidas para la Alimentación (FAO)",
+          "source_type": "VERIFIED_NEWS",
+          "url": "https://www.fao.org/worldfoodsituation/foodpricesindex",
+          "retrieved_at": "2026-09-11T11:31:44.813056",
+          "credibility_score": 0.97
+        },
+        "detected_at": "2026-09-11T11:31:44.813057",
+        "raw_metrics": {}
+      },
+      "impact": {
+        "impact_id": "IMP-RULE_CLIMATE_DROUGHT",
+        "affected_category": "hortalizas_y_frutas",
+        "affected_products": [
+          "Paltas",
+          "Frutas de Estación",
+          "Hortalizas de Riego",
+          "Cebollas",
+          "Papas"
+        ],
+        "transmission_mechanism": "La reducción de turnos de riego y la sequía en cuencas agrícolas reduce la superficie cultivada y el calibre promedio de las cosechas. La menor oferta disponible eleva el precio de equilibrio de productos de alto consumo hídrico.",
+        "estimated_lag_days_min": 15,
+        "estimated_lag_days_max": 40,
+        "severity": "MEDIA",
+        "trend_direction": "ALZA",
+        "confidence_score": 0.88
+      },
+      "consumer_advice": "💡 Consejo Sentinela: Priorice frutas y verduras de temporada de zonas del sur con mayor seguridad hídrica y aproveche los formatos a granel en supermercados que mantengan promociones semanales.",
+      "trend_direction": "ALZA",
+      "created_at": "2026-09-11T11:31:44.814317"
+    }
+  ]
+}

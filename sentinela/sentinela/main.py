@@ -136,6 +136,43 @@ def run_sentinela(is_sample: bool = False, print_console: bool = True, save_repo
         except Exception as e:
             logger.warning(f"No se pudo sincronizar reporte con backend: {e}")
 
+        # 7.5 Generación automática de Carruseles y Publicación en Redes Sociales (Instagram & Facebook)
+        try:
+            from .generator.carousel_generator import CarouselGenerator
+            from .publisher.meta_publisher import MetaSocialPublisher
+
+            c_gen = CarouselGenerator()
+            c_pub = MetaSocialPublisher()
+
+            for alt in alerts:
+                impact = getattr(alt, 'impact', None)
+                event = getattr(alt, 'event', None)
+                primary_source = getattr(event, 'primary_source', None) if event else None
+
+                art_dict = {
+                    "id": getattr(alt, 'alert_id', f"ALT-{date_str}"),
+                    "title": getattr(alt, 'title', ''),
+                    "headline": getattr(alt, 'headline', ''),
+                    "category": getattr(impact, 'affected_category', 'general') if impact else 'general',
+                    "category_label": getattr(alt, 'category_label', 'Canasta Básica'),
+                    "trend_direction": getattr(alt, 'trend_direction', 'ALZA'),
+                    "source_name": getattr(primary_source, 'source_name', 'Organismo Oficial') if primary_source else 'Organismo Oficial',
+                    "transmission_mechanism": getattr(impact, 'transmission_mechanism', '') if impact else '',
+                    "lag_days_min": getattr(impact, 'estimated_lag_days_min', 7) if impact else 7,
+                    "lag_days_max": getattr(impact, 'estimated_lag_days_max', 21) if impact else 21,
+                    "affected_products": getattr(impact, 'affected_products', []) if impact else [],
+                    "consumer_advice": getattr(alt, 'consumer_advice', ''),
+                    "date": datetime.now().isoformat()
+                }
+
+                manifest = c_gen.render_carousel_for_article(art_dict)
+                is_dry_run = not (c_pub.is_configured_for_facebook() or c_pub.is_configured_for_instagram())
+                c_pub.publish_carousel(art_dict["id"], manifest, dry_run=is_dry_run)
+
+            logger.info(f"📱 Carruseles de redes sociales generados y procesados para {len(alerts)} alertas.")
+        except Exception as e:
+            logger.warning(f"Aviso durante la generación de carruseles de redes sociales: {e}")
+
     # 8. Despachar a la consola de terminal
     if print_console:
         summary_text = BulletinBuilder.render_console_summary(alerts)

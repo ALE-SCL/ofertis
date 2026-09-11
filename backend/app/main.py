@@ -90,6 +90,13 @@ app.include_router(mining_router, prefix="/api/v1")
 app.include_router(radar_router, prefix="/api/v1")
 app.include_router(sentinela_router, prefix="/api/v1")
 
+# Montar directorio estático para servir carruseles de redes sociales e imágenes
+import os
+from fastapi.staticfiles import StaticFiles
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+os.makedirs(static_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 
 @app.get("/")
 async def root():
