@@ -140,6 +140,21 @@ class EntityResolutionAgent(BaseAgent):
         res_item = await self.db.execute(stmt_item)
         existing_item = res_item.scalar_one_or_none()
 
+        if not existing_item:
+            # Verificar si existe un item previo para este mismo canónico y supermercado con formato equivalente (ej: SKU sintético legado como LID-ES-01)
+            stmt_legacy = select(SupermarketItem).where(
+                SupermarketItem.canonical_id == canonical_id,
+                SupermarketItem.supermarket_id == super_id,
+                SupermarketItem.package_unit == item.package_unit
+            )
+            res_legacy = await self.db.execute(stmt_legacy)
+            legacy_items = res_legacy.scalars().all()
+            for cand in legacy_items:
+                if abs(float(cand.package_quantity) - float(item.package_quantity)) <= (float(cand.package_quantity) * 0.15 + 0.01):
+                    existing_item = cand
+                    existing_item.sku = item.sku  # Actualizar al SKU real de la tienda
+                    break
+
         if existing_item:
             existing_item.canonical_id = canonical_id
             existing_item.store_title = item.store_title
@@ -149,6 +164,7 @@ class EntityResolutionAgent(BaseAgent):
             if item.image_url:
                 existing_item.image_url = item.image_url
             existing_item.last_seen_at = datetime.now(timezone.utc)
+            existing_item.is_available = True
             item_id = existing_item.id
         else:
             new_item = SupermarketItem(

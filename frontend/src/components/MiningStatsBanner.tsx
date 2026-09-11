@@ -19,7 +19,7 @@ export const MiningStatsBanner: React.FC<MiningStatsBannerProps> = ({ stats }) =
           <span className="text-stone-600 dark:text-stone-300">
             {stats ? (
               <>
-                <strong className="text-stone-900 dark:text-white font-extrabold">{skusCount.toLocaleString('es-CL')}</strong> productos en <strong className="text-stone-900 dark:text-white font-extrabold">{productsCount.toLocaleString('es-CL')}</strong> formatos de canasta
+                <strong className="text-stone-900 dark:text-white font-extrabold">{productsCount.toLocaleString('es-CL')}</strong> productos de la canasta comparados en <strong className="text-stone-900 dark:text-white font-extrabold">{skusCount.toLocaleString('es-CL')}</strong> ofertas de supermercados
               </>
             ) : (
               'Monitoreando ofertas en tiempo real...'

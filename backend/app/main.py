@@ -35,8 +35,33 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Aviso durante la inicialización de DB en lifespan: {e}")
 
+    # Bucle periódico de 24 horas (opcional en segundo plano)
+    sync_task = None
+    import os
+    if os.getenv("ENABLE_DAILY_PRICE_LOOP", "false").lower() in ["true", "1", "yes"]:
+        async def daily_sync_background():
+            while True:
+                await asyncio.sleep(86400)
+                try:
+                    logger.info("⏰ Ejecutando ciclo programado de actualización de 24 horas en segundo plano...")
+                    from app.core.database import AsyncSessionLocal
+                    from app.services.seed_service import sync_or_update_seed_prices
+                    from app.agents.orchestrator import MultiAgentOrchestrator
+                    async with AsyncSessionLocal() as session:
+                        await sync_or_update_seed_prices(session)
+                        orchestrator = MultiAgentOrchestrator(session)
+                        await orchestrator.execute_full_cycle(limit_per_query=3)
+                except Exception as ex:
+                    logger.error(f"Aviso en ciclo de 24h en segundo plano: {ex}")
+
+        sync_task = asyncio.create_task(daily_sync_background())
+        logger.info("Bucle de actualización automática cada 24 horas activado.")
+
     yield
+    if sync_task:
+        sync_task.cancel()
     logger.info("Cerrando Ofertis Backend...")
+
 
 
 app = FastAPI(

@@ -155,10 +155,10 @@ PRODUCTS_SEED = [
         "standard_unit": "kg",
         "description": "Fideos tradicionales Spaghetti número 5 hechos con sémola de trigo candeal seleccionado.",
         "items": [
-            {"super": "lider", "sku": "LID-SP-01", "title": "Fideos Spaghetti N°5 Carozzi Paquete 400 g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("990"), "offer_price": Decimal("790"), "img": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80"},
-            {"super": "jumbo", "sku": "JUM-SP-02", "title": "Pasta Spaghetti 5 Carozzi 400g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("1050"), "offer_price": Decimal("850"), "img": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80"},
-            {"super": "santaisabel", "sku": "STA-SP-03", "title": "Spaghetti N°5 Carozzi 400 gr", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("990"), "offer_price": None, "img": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80"},
-            {"super": "unimarc", "sku": "UNI-SP-04", "title": "Fideos Spaghetti 5 Carozzi Bolsa 400g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("980"), "offer_price": Decimal("750"), "img": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80"}
+            {"super": "lider", "sku": "LID-SP-01", "title": "Fideos Spaghetti N°5 Carozzi Paquete 400 g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("1050"), "offer_price": None, "img": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80"},
+            {"super": "jumbo", "sku": "JUM-SP-02", "title": "Pasta Spaghetti 5 Carozzi 400g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("1090"), "offer_price": None, "img": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80"},
+            {"super": "santaisabel", "sku": "STA-SP-03", "title": "Spaghetti N°5 Carozzi 400 gr", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("1050"), "offer_price": Decimal("950"), "img": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80"},
+            {"super": "unimarc", "sku": "UNI-SP-04", "title": "Fideos Spaghetti 5 Carozzi Bolsa 400g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("1090"), "offer_price": Decimal("990"), "img": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80"}
         ]
     },
     {
@@ -169,9 +169,9 @@ PRODUCTS_SEED = [
         "standard_unit": "kg",
         "description": "Fideos tipo espiral ideales para pastas frías, ensaladas o salsas espesas.",
         "items": [
-            {"super": "lider", "sku": "LID-ES-01", "title": "Fideos Espirales Lucchetti Paquete 400g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("950"), "offer_price": Decimal("690"), "img": "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80"},
-            {"super": "jumbo", "sku": "JUM-ES-02", "title": "Pastas Lucchetti Espirales 400 g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("990"), "offer_price": None, "img": "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80"},
-            {"super": "unimarc", "sku": "UNI-ES-03", "title": "Fideos Espirales Lucchetti 400g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("920"), "offer_price": Decimal("720"), "img": "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80"}
+            {"super": "lider", "sku": "LID-ES-01", "title": "Fideos Espirales Lucchetti Paquete 400g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("1030"), "offer_price": None, "img": "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80"},
+            {"super": "jumbo", "sku": "JUM-ES-02", "title": "Pastas Lucchetti Espirales 400 g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("1100"), "offer_price": None, "img": "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80"},
+            {"super": "unimarc", "sku": "UNI-ES-03", "title": "Fideos Espirales Lucchetti 400g", "qty": Decimal("0.400"), "unit": "kg", "normal_price": Decimal("1090"), "offer_price": Decimal("990"), "img": "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80"}
         ]
     }
 ]

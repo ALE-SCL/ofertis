@@ -1,0 +1,59 @@
+name: Sincronización Diaria de Precios (Cada 24 Horas)
+
+on:
+  schedule:
+    # Ejecutar todos los días a las 03:00 UTC (00:00 AM medianoche, hora de Chile Continental)
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Permite ejecución manual bajo demanda desde la pestaña Actions
+
+jobs:
+  daily-price-sync:
+    name: Actualizar Precios de Retail en Vivo
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Invocar Sincronización en Backend en Producción
+        id: call-api
+        run: |
+          BACKEND_URL="${{ secrets.BACKEND_PROD_URL || 'https://ofertis-backend.onrender.com' }}"
+          echo "Disparando sincronización diaria a: $BACKEND_URL/api/v1/mining/daily-sync"
+          
+          HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" -X POST "$BACKEND_URL/api/v1/mining/daily-sync" \
+            -H "Content-Type: application/json" \
+            --max-time 300 || true)
+          
+          echo "Código HTTP recibido: $HTTP_STATUS"
+          cat response.json || true
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "✅ Sincronización remota exitosa!"
+            exit 0
+          else
+            echo "⚠️ La API remota retornó $HTTP_STATUS o está en reposo. Procediendo con ejecución directa mediante script..."
+            exit 1
+          fi
+        continue-on-error: true
+
+      - name: Configurar Python (Fallback si la API no está en línea)
+        if: steps.call-api.outcome == 'failure' && env.DATABASE_URL != ''
+        uses: setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Instalar dependencias backend
+        if: steps.call-api.outcome == 'failure' && env.DATABASE_URL != ''
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Ejecutar script de actualización directa
+        if: steps.call-api.outcome == 'failure' && env.DATABASE_URL != ''
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python3 scripts/daily_price_updater.py --once
