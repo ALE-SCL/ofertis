@@ -225,7 +225,7 @@ async def import_catalog_batch(
                     canon.brand = c_brand
                 if prod_data.description:
                     canon.description = prod_data.description
-                if embedding and not canon.embedding:
+                if embedding and canon.embedding is None:
                     canon.embedding = embedding
                 canonical_updated += 1
 
