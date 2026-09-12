@@ -248,7 +248,7 @@ class ProductService:
 
     async def get_product_detail(self, canonical_id: int, format: Optional[str] = None) -> Optional[CanonicalProductDetail]:
         """
-        Obtiene la comparativa detallada de precios en cada uno de los 4 supermercados para un producto y formato específico.
+        Obtiene la comparativa detallada de precios en cada una de las 10 cadenas (supermercados, mayoristas y carnicerías) para un producto y formato específico.
         """
         stmt = (
             select(CanonicalProduct)

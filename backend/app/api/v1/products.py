@@ -70,7 +70,7 @@ async def get_product_detail(
 
 @router.post("/refresh-live")
 async def refresh_live_products(
-    q: str = Query(..., min_length=2, description="Término a buscar y minar en vivo en los 4 supermercados"),
+    q: str = Query(..., min_length=2, description="Término a buscar y minar en vivo en las 10 cadenas de supermercados"),
     category: Optional[str] = Query(None),
     limit: int = Query(4, ge=1, le=10),
     db: AsyncSession = Depends(get_db)

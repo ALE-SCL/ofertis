@@ -13,8 +13,9 @@ from app.models.supermarket_item import SupermarketItem
 from app.models.supermarket import Supermarket
 from app.models.price_record import PriceRecord
 
-EXPORT_JSON = os.path.join(os.path.dirname(__file__), "data", "catalog_export.json")
-EXPORT_GZ = os.path.join(os.path.dirname(__file__), "data", "catalog_export.json.gz")
+EXPORT_DIR = os.getenv("CATALOG_EXPORT_DIR", os.path.join(os.path.dirname(__file__), "data"))
+EXPORT_JSON = os.path.join(EXPORT_DIR, "catalog_export.json")
+EXPORT_GZ = os.path.join(EXPORT_DIR, "catalog_export.json.gz")
 
 async def export_catalog():
     print("🚀 Exportando catálogo desde la BD de desarrollo...")
