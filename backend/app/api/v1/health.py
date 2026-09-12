@@ -31,5 +31,5 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         "pgvector": pgvector_status,
         "embedding_model": settings.EMBEDDING_MODEL_NAME,
         "whatsapp_provider": settings.WHATSAPP_PROVIDER,
-        "version": "2026.09.11-v4-fix-numpy-embedding"
+        "version": "2026.09.11-v5-clean-import"
     }

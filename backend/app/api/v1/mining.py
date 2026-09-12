@@ -142,36 +142,8 @@ async def import_catalog_batch(
     Diseñado para sincronización de alto rendimiento entre entornos (Dev -> Prod).
     """
     from decimal import Decimal
-    from sqlalchemy import func
-    from app.models.price_record import PriceRecord
-    from app.services.vector_service import VectorService
-
-    # 1. Mapa de supermercados
-    res_supers = await db.execute(select(Supermarket))
-    super_map = {s.slug.lower(): s.id for s in res_supers.scalars().all()}
-
-    canonical_created = 0
-    canonical_updated = 0
-    items_created = 0
-    items_updated = 0
-
-    for prod_data in payload.products:
-        # Buscar entidad canónica
-        stmt_c = select(CanonicalProduct).where(
-            func.lower(CanonicalProduct.name) == prod_data.name.strip().lower(),
-            CanonicalProduct.category == prod_data.category
-        )
-        canon = (await db.execute(stmt_c)).scalar_one_or_none()
-
-        embedding = prod_data.embedding
-        if not embedding:
-            emb_text = f"{prod_data.name} {prod_data.category} {prod_data.brand or ''} {prod_data.description or ''}"
-            embedding = VectorService.generate_embedding(emb_text)
-
-    from decimal import Decimal
     import logging
     from sqlalchemy import func
-    from fastapi import HTTPException
     from app.models.price_record import PriceRecord
     from app.services.vector_service import VectorService
 
