@@ -92,7 +92,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <div className="bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-white rounded-2xl p-5 shadow-md flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <span className="text-xs font-black uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">
-                    ★ Precio más barato: {product.best_supermarket_name}
+                    ★ Mejor precio entre 10 cadenas: {product.best_supermarket_name}
                   </span>
                   <div className="text-2xl sm:text-3xl font-black mt-2 flex items-baseline space-x-2">
                     <span>${Math.round(product.best_package_price || product.best_price_per_unit || 0).toLocaleString('es-CL')}</span>
@@ -124,7 +124,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               {/* Tabla Comparativa de Supermercados */}
               <div>
                 <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-100 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
-                  <span>Comparativa Directa para este Formato ({product.package_format || 'Estándar'})</span>
+                  <span>Comparativa Directa entre 10 Cadenas ({product.package_format || 'Estándar'})</span>
                   <span className="text-xs font-normal text-stone-500 dark:text-stone-400">(Ordenado del más barato al más caro)</span>
                 </h3>
 

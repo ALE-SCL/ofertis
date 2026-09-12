@@ -86,9 +86,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
 
-        <div className="absolute bottom-2.5 left-2.5">
+        <div className="absolute bottom-2.5 left-2.5 flex items-center space-x-1.5">
           <span className="text-[10px] uppercase font-bold tracking-wider bg-stone-900/80 dark:bg-stone-950/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-md">
             {product.category.replace('_', ' ')}
+          </span>
+          <span className="text-[10px] font-black tracking-wider bg-orange-600/95 text-white px-2 py-0.5 rounded-md shadow-xs">
+            10 Cadenas
           </span>
         </div>
       </div>
@@ -123,10 +126,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 : 'bg-orange-50/40 dark:bg-stone-800/60 border-orange-100/70 dark:border-stone-700/60'
             }`}
           >
-            {/* Badge obligatorio: Precio más barato */}
+            {/* Badge obligatorio: Precio más barato entre 10 cadenas */}
             <div className="flex items-center justify-between mb-2">
               <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg font-black text-[11px] border shadow-2xs ${badgeClass}`}>
-                <span>★ Precio más barato: {product.best_supermarket_name}</span>
+                <span>★ Más barato (10 Cadenas): {product.best_supermarket_name}</span>
               </span>
               {product.savings_amount > 0 && (
                 <span
@@ -184,11 +187,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </div>
           </div>
 
-          {/* Supermercados que lo tienen disponible */}
+          {/* Comparativa entre 10 Supermercados & Mayoristas */}
           <div className="mb-4">
-            <div className="text-[10px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1 flex items-center space-x-1">
-              <CheckCircle2 className={`w-3 h-3 ${hasMichi ? 'text-emerald-600' : 'text-orange-600'}`} />
-              <span>Comparado en {product.available_supermarkets.length} tiendas:</span>
+            <div className="text-[11px] font-bold text-stone-700 dark:text-stone-300 mb-1.5 flex items-center justify-between">
+              <div className="flex items-center space-x-1">
+                <CheckCircle2 className={`w-3.5 h-3.5 ${hasMichi ? 'text-emerald-600' : 'text-orange-600'}`} />
+                <span>Comparativa 10 Supermercados:</span>
+              </div>
+              <span className="text-[10px] font-black text-orange-700 dark:text-orange-300 bg-orange-100/80 dark:bg-orange-950/70 px-2 py-0.5 rounded-md border border-orange-200 dark:border-orange-800">
+                {product.available_supermarkets.length} con stock
+              </span>
             </div>
             <div className="flex flex-wrap gap-1">
               {product.available_supermarkets.map((sup) => (
@@ -213,7 +221,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 : 'bg-orange-600 hover:bg-orange-500 shadow-orange-500/20'
             }`}
           >
-            <span>Comparar</span>
+            <span>Ver 10 Cadenas</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
 
