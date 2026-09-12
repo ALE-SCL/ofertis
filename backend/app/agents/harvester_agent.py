@@ -5,6 +5,9 @@ from app.scrapers.base_scraper import BaseScraperAdapter, RawScrapedProduct
 from app.scrapers.cencosud_scraper import CencosudScraperAdapter
 from app.scrapers.unimarc_scraper import UnimarcScraperAdapter
 from app.scrapers.lider_scraper import LiderScraperAdapter
+from app.scrapers.dona_carne_scraper import DonaCarneScraperAdapter
+from app.scrapers.el_carnicero_scraper import ElCarniceroScraperAdapter
+from app.scrapers.wholesale_scraper import WholesaleStoreAdapter
 
 from datetime import datetime, timezone, timedelta
 
@@ -14,8 +17,8 @@ logger = logging.getLogger("ofertis.agents.harvester")
 class HarvesterAgent(BaseAgent):
     """
     Agente de Minería e Ingesta Continua (Data Mining Loop).
-    Recorre las categorías de productos de primera necesidad en los 4 supermercados líderes
-    distribuidas en 3 turnos diarios para un crecimiento orgánico sin saturación de recursos.
+    Recorre las categorías de productos de primera necesidad en los 10 supermercados y mayoristas
+    distribuidas en turnos diarios para un crecimiento orgánico sin saturación de recursos.
     """
 
     BATCH_1_PROTEINAS = [
@@ -193,6 +196,12 @@ class HarvesterAgent(BaseAgent):
             CencosudScraperAdapter(brand_type="jumbo"),
             CencosudScraperAdapter(brand_type="santaisabel"),
             UnimarcScraperAdapter(),
+            WholesaleStoreAdapter(supermarket_slug="alvi"),
+            WholesaleStoreAdapter(supermarket_slug="central_mayorista"),
+            WholesaleStoreAdapter(supermarket_slug="mayorista10"),
+            WholesaleStoreAdapter(supermarket_slug="acuenta"),
+            DonaCarneScraperAdapter(),
+            ElCarniceroScraperAdapter(),
         ]
 
     async def step(self, limit_per_query: int = 4, target_queries: list = None, **kwargs: Any) -> Dict[str, Any]:

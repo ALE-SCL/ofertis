@@ -248,11 +248,11 @@ export function App() {
               }`}
             >
               <Store className="w-4 h-4" />
-              <span>Supermercados Retail</span>
+              <span>Supermercados & Mayoristas</span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                 activeTab === 'retail' ? 'bg-orange-700 text-orange-100' : 'bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
               }`}>
-                4 Cadenas
+                10 Cadenas
               </span>
             </button>
 
@@ -293,7 +293,7 @@ export function App() {
 
           <div className="text-xs text-stone-500 dark:text-stone-400 px-3 hidden lg:block">
             {activeTab === 'retail' 
-              ? 'Precios normalizados por kilo y litro' 
+              ? 'Precios y ofertas en 10 cadenas y mayoristas de Chile' 
               : activeTab === 'radar'
               ? 'Canales mayoristas y ferias directas'
               : 'Auditoría preventiva de inflación con el Sentinela'}

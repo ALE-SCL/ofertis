@@ -75,6 +75,18 @@ class TestOfertisAgents(unittest.TestCase):
         self.assertIsInstance(batch, list)
         self.assertGreater(len(batch), 0)
 
+    def test_harvester_ten_supermarkets_adapters(self):
+        from app.agents.harvester_agent import HarvesterAgent
+        agent = HarvesterAgent()
+        self.assertEqual(len(agent.adapters), 10)
+        expected_slugs = {
+            "lider", "jumbo", "santaisabel", "unimarc",
+            "alvi", "central_mayorista", "mayorista10", "acuenta",
+            "dona_carne", "el_carnicero"
+        }
+        actual_slugs = {ad.supermarket_slug for ad in agent.adapters}
+        self.assertEqual(expected_slugs, actual_slugs)
+
 
 if __name__ == "__main__":
     unittest.main()

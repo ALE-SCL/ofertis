@@ -35,16 +35,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Supermercados monitoreados, Selector de Modo Oscuro & Botón de Alertas */}
         <div className="flex items-center space-x-2 sm:space-x-4">
-          <div className="hidden lg:flex items-center space-x-2 text-xs sm:text-sm font-semibold text-stone-700 dark:text-stone-300 bg-orange-50/60 dark:bg-stone-800/80 px-4 py-2.5 rounded-2xl border border-orange-100/90 dark:border-stone-700 shadow-2xs">
+          <div className="hidden xl:flex items-center space-x-2 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-orange-50/60 dark:bg-stone-800/80 px-3.5 py-2 rounded-2xl border border-orange-100/90 dark:border-stone-700 shadow-2xs">
             <Activity className="w-4 h-4 text-orange-500 animate-pulse" />
-            <span className="text-stone-500 dark:text-stone-400">En vivo:</span>
+            <span className="text-stone-500 dark:text-stone-400">10 Cadenas:</span>
             <span className="font-extrabold text-blue-600 dark:text-blue-400">Lider</span>
-            <span className="text-orange-200 dark:text-stone-600">•</span>
+            <span className="text-stone-300 dark:text-stone-600">•</span>
             <span className="font-extrabold text-emerald-600 dark:text-emerald-400">Jumbo</span>
-            <span className="text-orange-200 dark:text-stone-600">•</span>
+            <span className="text-stone-300 dark:text-stone-600">•</span>
             <span className="font-extrabold text-rose-600 dark:text-rose-400">Santa Isabel</span>
-            <span className="text-orange-200 dark:text-stone-600">•</span>
+            <span className="text-stone-300 dark:text-stone-600">•</span>
             <span className="font-extrabold text-red-600 dark:text-red-400">Unimarc</span>
+            <span className="text-stone-300 dark:text-stone-600">•</span>
+            <span className="font-extrabold text-sky-600 dark:text-sky-400">Alvi</span>
+            <span className="text-stone-300 dark:text-stone-600">•</span>
+            <span className="font-extrabold text-amber-600 dark:text-amber-400">aCuenta</span>
+            <span className="text-stone-300 dark:text-stone-600">•</span>
+            <span className="font-extrabold text-rose-800 dark:text-rose-400">Carnicerías</span>
           </div>
 
           {/* Acceso Directo a Alza de Precios (Blog Sentinela) */}

@@ -84,7 +84,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           {loading ? (
             <div className="py-16 text-center">
               <div className="w-10 h-10 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">Consultando bases de datos de Jumbo, Santa Isabel, Unimarc y Lider...</p>
+              <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">Consultando bases de datos de 10 supermercados y cadenas mayoristas...</p>
             </div>
           ) : product ? (
             <>

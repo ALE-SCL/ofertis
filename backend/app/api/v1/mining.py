@@ -47,7 +47,11 @@ async def get_mining_stats(db: AsyncSession = Depends(get_db)):
     return {
         "canonical_products_count": total_canonical or 0,
         "supermarket_skus_tracked": total_items or 0,
-        "active_supermarkets": ["Lider", "Jumbo", "Santa Isabel", "Unimarc"],
+        "active_supermarkets": [
+            "Lider", "Jumbo", "Santa Isabel", "Unimarc",
+            "Alvi", "Central Mayorista", "Mayorista 10", "SuperBodega aCuenta",
+            "Doña Carne", "El Carnicero"
+        ],
         "commune_target": "Santiago Centro / Providencia (Región Metropolitana)"
     }
 
@@ -73,11 +77,12 @@ async def trigger_daily_sync(
 ):
     """
     Endpoint de sincronización diaria cada 24 horas:
-    1. Sincroniza y actualiza la canasta básica con precios oficiales de góndola.
-    2. Ejecuta un ciclo multi-agente para minar ofertas vivas de Lider, Jumbo, Santa Isabel y Unimarc.
+    1. Sincroniza y actualiza la canasta básica con precios oficiales de góndola en las 10 cadenas.
+    2. Ejecuta un ciclo multi-agente para minar ofertas vivas.
     3. Despacha alertas si detecta caídas de precio notables.
     """
     from datetime import datetime, timezone
+    from sqlalchemy import func
     from app.services.seed_service import sync_or_update_seed_prices
     from app.agents.orchestrator import MultiAgentOrchestrator
 
@@ -88,13 +93,16 @@ async def trigger_daily_sync(
     orchestrator = MultiAgentOrchestrator(db)
     cycle_res = await orchestrator.execute_full_cycle(limit_per_query=4)
 
+    total_canonical = await db.scalar(select(func.count(CanonicalProduct.id))) or 0
+    total_items = await db.scalar(select(func.count(SupermarketItem.id))) or 0
+
     return {
         "status": "success",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "items_populated_or_updated": updated_count,
+        "items_populated_or_updated": seed_updated,
         "total_canonical_products": total_canonical,
         "total_supermarket_items": total_items,
-        "mining_summary": mining_summary
+        "mining_summary": cycle_res
     }
 
 
